@@ -42,6 +42,8 @@ exports = module.exports = function(app) {
   app.get('/gallery', routes.views.gallery);
   app.all('/contact', routes.views.contact);
 
+  app.get('/space', routes.views.space);
+
   app.all('/signup', routes.views.session.signup);
   app.all('/signin', routes.views.session.signin);
   app.all('/forgot-password', routes.views.session['forgot-password']);
