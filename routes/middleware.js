@@ -26,16 +26,18 @@ exports.initLocals = function(req, res, next) {
 	var locals = res.locals;
 	
 	locals.navLinks = [
-		{ label: 'Home',		key: 'home',		href: '/' },
-		{ label: 'Blog',		key: 'blog',		href: '/blog' },
-		{ label: 'Gallery',		key: 'gallery',		href: '/gallery' },
-		{ label: 'Contact',		key: 'contact',		href: '/contact' }
+		{ label: 'Home',			key: 'home',			href: '/' },
+		{ label: 'Space',			key: 'space',			href: '/space' },
+		{ label: 'Vizualizer',		key: 'visualizer',		href: '/visualizer' },
+		{ label: 'Missions',		key: 'missions',		href: '/missions' },
+		{ label: 'Ground Stations',	key: 'groundstations',	href: '/groundstations' },
+		{ label: 'Contact',			key: 'contact',			href: '/contact' }
 	];
 	
 	locals.user = req.user;
 
 	locals.page = {
-		title: 'Arthena',
+		title: 'Vizon',
 		path: req.url.split("?")[0]
 	};
 	

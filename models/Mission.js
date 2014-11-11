@@ -14,7 +14,7 @@ var Mission = new keystone.List('Mission', {
 Mission.add({
 	title: { type: String, required: true },
 	missionId: { type: String },
-	author: { type: Types.Relationship, ref: 'User', index: true, many: true},
+	authorizedUsers: { type: Types.Relationship, ref: 'User', index: true, many: true},
 	content: {
 		summary: { type: Types.Html, wysiwyg: true, height: 150 },
 		extended: { type: Types.Html, wysiwyg: true, height: 400 }
