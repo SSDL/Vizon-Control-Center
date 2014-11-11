@@ -1,0 +1,30 @@
+{
+  "name": "arthena",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "keystone": "~0.2.19",
+    "async": "~0.9.0",
+    "underscore": "~1.6.0",
+    "dotenv": "0.2.8",
+    "passport": "^0.2.0",
+    "passport-facebook": "^1.0.2",
+    "passport-github": "^0.1.5",
+    "passport-google-oauth": "^0.1.5",
+    "passport-twitter": "^1.0.2"
+  },
+  "devDependencies": {
+    "gulp": "~3.6.2",
+    "gulp-jshint": "~1.6.1",
+    "jshint-stylish": "~0.1.3",
+    "gulp-watch": "~0.6.5"
+  },
+  "engines": {
+    "node": ">=0.10.22",
+    "npm": ">=1.3.14"
+  },
+  "scripts": {
+    "start": "node keystone.js"
+  },
+  "main": "keystone.js"
+}

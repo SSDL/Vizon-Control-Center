@@ -1,0 +1,19 @@
+extends ../../layouts/default
+
+block flash-messages
+	//- intentionally blank
+	
+block content
+	.container-xs
+		.page-intro
+			h1 Arthena
+			h4.text-muted.mt-3 Co-invest with leaders in the art world
+			+flash-messages(messages)
+		.page-content
+			+auth-forms({ modal: false, initial: 'signup' })
+
+block js
+	script.
+		jQuery(function($) {
+			$('.auth-form').find('.form-control').eq(0).focus().select();
+		});
