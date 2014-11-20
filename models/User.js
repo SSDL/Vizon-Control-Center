@@ -10,12 +10,13 @@ var User = new keystone.List('User');
 
 User.add({
 	name: { type: Types.Name, required: true, index: true },
+	title : {type : String},
+	organization : {type : String},
 	email: { type: Types.Email, initial: true, required: true, index: true },
+	phone : {type : String},
 	password: { type: Types.Password, initial: true, required: true },
 }, 'Permissions', {
 	isAdmin: { type: Boolean, label: 'Can access Keystone', index: true },
-	isInvestor: { type: Boolean, label: 'Is an investor', index: true },
-	isCurator: { type: Boolean, label: 'Is a curator', index: true },
 });
 
 // Provide access to Keystone
