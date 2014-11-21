@@ -2,21 +2,23 @@ module.exports = function(app){
 
   var crypto = require('crypto')
     , async = require('async')
-    , config = require('./config')
     , utils = require('./utils')
     , db = app.db;
     ;
-  
+  console.log("hello");
   // attach namespace connection handlers to the io-enabled apps
-  for (var i = 0; i < app.listeners.length; i++) {
-    app.listeners[i].io.of('/gs').on('connection', handleGSSocketAuthorization);
-    app.listeners[i].io.of('/web').on('connection', handleWebSocketConnection);
-  }
+  
+	app.listener.of('/gs').on('connection', handleGSSocketAuthorization);
+	app.listener.of('/web').on('connection', handleWebSocketConnection);
   
   // basic web client socket connections. only one event is implemented currently.
   function handleWebSocketConnection(socket) {
     socket.on('join-mid',function(mid){
       socket.join(mid);
+    });
+    console.log("hello");
+    socket.on('querytaps', function(data){
+      console.log(data);
     });
   }
   
