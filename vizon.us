@@ -11,8 +11,8 @@ var keystone = require('keystone');
 
 keystone.init({
 
-	'name': 'VizonII',
-	'brand': 'VizonII',
+	'name': 'Vizon II',
+	'brand': 'Vizon II',
 
 	'less': 'public',
 	'static': 'public',

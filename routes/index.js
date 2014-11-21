@@ -42,6 +42,7 @@ exports = module.exports = function(app) {
   app.all('/contact', routes.views.contact);
 
   app.get('/space', routes.views.space);
+  app.get('/graph', routes.views.graph);
 
   app.all('/signup', routes.views.session.signup);
   app.all('/signin', routes.views.session.signin);

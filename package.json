@@ -4,7 +4,7 @@
   "private": true,
   "dependencies": {
     "keystone": "~0.2.19",
-    "async": "~0.9.0",
+    "async": "~0.9.0",    
     "underscore": "~1.6.0",
     "dotenv": "0.2.8",
     "passport": "^0.2.0",
@@ -12,7 +12,8 @@
     "passport-github": "^0.1.5",
     "passport-google-oauth": "^0.1.5",
     "passport-twitter": "^1.0.2",
-    "socket.io": "~1.2.0"
+    "socket.io": "~1.2.0",
+    "source-map": "0.1.34"
   },
   "devDependencies": {
     "gulp": "~3.6.2",
