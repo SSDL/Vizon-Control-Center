@@ -5,7 +5,6 @@ module.exports = function(app){
     , utils = require('./utils')
     , db = app.db;
     ;
-  console.log("hello");
   // attach namespace connection handlers to the io-enabled apps
   
 	app.listener.of('/gs').on('connection', handleGSSocketAuthorization);
@@ -16,9 +15,35 @@ module.exports = function(app){
     socket.on('join-mid',function(mid){
       socket.join(mid);
     });
-    console.log("hello");
-    socket.on('querytaps', function(data){
-      console.log(data);
+    socket.on('querytaps', function(data) {
+  	  var db = app.db;
+  	  //console.log(db);
+  	  var query = db.models.Descriptor.find( {'_id': /TAP_/i}, '_id n p h', function(err, data) {
+  	    console.log("in here");
+  	    //console.log(data);
+  	    socket.emit('querytaps', data);
+  	  });
+    });
+    
+    socket.on('querytimedata', function(tapinfo) {
+      var db = app.db;
+      var query = db.models.Descriptor.find( {'_id': tapinfo[0]}, {p: {$elemMatch: {"n" : tapinfo[1]}}})
+      query.exec(function(err, data) {
+        var fieldName = data[0].p[0].f;
+        
+        var query2 = db.models[tapinfo[0]].find({'_t': tapinfo[0]});
+        query2.exec(function(err, log) {
+          var data = {};
+          var series = [];
+      	  log.forEach( function(tap) {
+      	    var ts = (new Date(tap.h.ts.v).getTime())
+      	    series.push([ts, tap.p[fieldName].v]);
+      	});
+      	data.name = tapinfo[1];
+      	data.series = series;
+      	socket.emit('querytimedata', data);
+      	});
+      });
     });
   }
   
