@@ -6,7 +6,7 @@ module.exports = function(ks){
     , config = require('./routes/config')
     , utils = require('./routes/utils')
     , db = ks.db = mongoose.createConnection(config.mongodb.uri);
-    
+
   // create the mongodb connection through mongoose.
   // attach basic event handlers to the connection for logging purposes
   db.mongoose = mongoose;
@@ -24,7 +24,6 @@ module.exports = function(ks){
   // create namespace placeholder objects for utility functions and dynamically created schemas and models
   db.funcs = {};
   db.schemas = {};
-  
   // load static database models
   //require('./models/User')(app, mongoose);
   //require('./models/Mission')(app, mongoose);
@@ -70,6 +69,31 @@ module.exports = function(ks){
     return propertyliteral;
   }
   
+  function setupTAPSchemaLiteral2(desc_prop) {
+  	var desc = desc_prop.split(',');
+    function getValueProperty(val) {
+      var literal = {v: val}
+      if(desc[0]) literal.n = desc[0];
+      //if(desc_prop.u) literal.u = desc_prop.u;
+      if(desc.length > 3) { // verify that the property conv is an array
+        literal.v = Number(desc[2]); // the first element of conv is the linear shift
+        for(var i = 3; i < desc.length; i++) { // for the rest of the elements in conv
+          literal.v += Number(desc[i]) * Math.pow(val, i) // determine the power and constant
+        }
+      } else if(desc[2] == 'hex') { // hex string
+        literal.v = '0x' + literal.v;
+      } else if(desc[2] == 'snap') { // SNAP time
+        literal.v = new Date((literal.v * 1000) + (new Date('Jan 1, 2000')).getTime());
+      }
+      return literal;
+    }
+    //console.log(desc_prop);
+    var propertyliteral = { type: Number, get: getValueProperty }; // create new schema property literal for plain number
+    if(desc[2] == 'string' || desc[2] == 'hex') // hex string or regular string
+      propertyliteral.type = String;
+    return propertyliteral;
+  }
+  
   // this function dynamically crates the literal for a given CAP descriptor property.
   // the property literal consists of a type, and for particular conversion types, a getter.
   // the only conversion type for which a getter is defined now is SNAP time. this function
@@ -89,7 +113,8 @@ module.exports = function(ks){
     }
     return propertyliteral;
   }
-  
+  ks_TAP = ks.list('TAP');
+  //console.log(ks_TAP);
   // Descriptor setup
   db.schemas.Descriptor = mongoose.Schema({
     _id: String,
@@ -110,6 +135,24 @@ module.exports = function(ks){
   },{ versionKey: false, id: false });
   db.model('Descriptor', db.schemas.Descriptor, 'descriptors');
   
+  db.schemas.Descriptor2 = mongoose.Schema({
+    _id: String,
+    n: String,
+    h: [{
+      n: String,
+      l: Number,
+      f: String,
+      c: String,
+      }],
+    p: [{
+      n: String,
+      l: Number,
+      f: String,
+      c: [Number, Number],
+      u: String
+      }]
+  },{ versionKey: false, id: false });
+  db.model('Descriptor2', db.schemas.Descriptor2, 'descriptors2');  
   // TAP setup
   db.schemas.TAP = mongoose.Schema({}, { collection : 'taplog', versionKey: false, id: false, discriminatorKey : '_t' });
   db.schemas.TAP.virtual('d').get(function(){ return this._id.getTimestamp(); });
@@ -139,7 +182,12 @@ module.exports = function(ks){
     else if(desc_typeid) regex = new RegExp('^'+desc_typeid + '$') // matches the descriptor typeid specified
     db.models.Descriptor.where('_id').regex(regex).sort('_id').exec(callback);
   }
-  
+  db.funcs.loadPacketDescriptors2 = function(desc_typeid, callback){
+    var regex = /.+_\d+/; // match all xxx_###
+    if(typeof desc_typeid === 'function') callback = desc_typeid
+    else if(desc_typeid) regex = new RegExp('^'+desc_typeid + '$') // matches the descriptor typeid specified
+    ks.list('TAP').model.where('ID').regex(regex).sort('ID').exec(callback);
+  }
   // this database function loads a packet model based on a descriptor typeid. if the model
   // for the typeid is cached, that model is passed to the callback. otherwise, the above 
   // loadPacketDescriptors() function is called on the typeid with a callback to generate
@@ -147,7 +195,7 @@ module.exports = function(ks){
   // slightly differently in terms of schema literal generation for each field descriptor,
   // but both consist of the same general schema structure extended from the base TAP/CAP
   // schemas above. the final models are cached for future use.
-  db.funcs.loadPacketModel = function(desc_typeid, callback) {
+  db.funcs.loadPacketModel2 = function(desc_typeid, callback) {
     if(db.models[desc_typeid]) callback(db.model(desc_typeid)) // if the descriptor typeid is already in the cache, use it
     else {
       db.funcs.loadPacketDescriptors(desc_typeid, function (err, descriptors) { // fetch regex-matched descriptors from the database
@@ -184,6 +232,50 @@ module.exports = function(ks){
             db.model(descriptor._id, newSchema);
             
             utils.logText(descriptor._id + ' ' + descriptor.n, 'LOAD'.cyan);
+          }
+          if(callback) callback(db.model(desc_typeid)); // return the model if available, otherwise will be undefined so make sure it's handled in callback
+        }
+      });
+    }
+  }
+ 
+ 	db.funcs.loadPacketModel = function(desc_typeid, callback) {
+    if(db.models[desc_typeid]) callback(db.model(desc_typeid)) // if the descriptor typeid is already in the cache, use it
+    else {
+      db.funcs.loadPacketDescriptors2(desc_typeid, function (err, descriptors) { // fetch regex-matched descriptors from the database
+        if (err) {
+          utils.log(err);
+        }
+        else {
+          for(var k in descriptors) { // for each retrieved descriptor, even if 1
+            var descriptor = descriptors[k].toObject(); // call toObject to only get "descriptor elements", not the extra Mongoose stuff
+            var isTAP = /^TAP_.*/.test(descriptor.ID);
+            var isCAP = /^CAP_.*/.test(descriptor.ID);
+            var headerliteral = { mid: { type: Number } }
+            var payloadliteral = {}
+            var namesliteral = {}
+            for(var prop in descriptor.header) {
+              if(descriptor.header[prop].split(',')[0] == 'TAP ID') continue;
+              if(descriptor.header[prop].split(',')[0] && isTAP) // if the property is an object with a fieldname property of its own
+                headerliteral[descriptor.header[prop].split(',')[0]] = setupTAPSchemaLiteral2(descriptor.header[prop]);
+              else if(descriptor.header[prop].split(',')[0] && isCAP)
+                headerliteral[descriptor.header[prop].split(',')[0]] = setupCAPSchemaLiteral2(descriptor.header[prop]);
+            }
+            for(var prop in descriptor.package) {
+              if (descriptor.package[prop].split(',')[0] && isTAP) // if the property is an object with a fieldname property of its own
+                payloadliteral[descriptor.package[prop].split(',')[0]] = setupTAPSchemaLiteral2(descriptor.package[prop]);
+              else if (descriptor.package[prop].split(',')[0] && isCAP)
+                payloadliteral[descriptor.package[prop].split(',')[0]] = setupCAPSchemaLiteral2(descriptor.package[prop]);
+            }
+            var newSchema = db.schemas[ descriptor.ID.split('_')[0] ].extend( { // extend the descriptor base type (TAP, CAP, etc)
+              h: headerliteral,
+              p: payloadliteral
+            } );
+            //newSchema.virtual('h.t').get(function(){ return parseInt(this._t.split('_')[1]); });
+            //newSchema.index({ '_t': 1, 'h.s': -1, 'h.mid':1}, { unique: true });
+            db.model(descriptor.ID, newSchema);
+            //console.log(db.models);
+            utils.logText(descriptor.ID + ' ' + descriptor.name, 'LOAD'.cyan);
           }
           if(callback) callback(db.model(desc_typeid)); // return the model if available, otherwise will be undefined so make sure it's handled in callback
         }

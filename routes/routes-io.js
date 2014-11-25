@@ -16,21 +16,41 @@ module.exports = function(app){
       socket.join(mid);
     });
     socket.on('querytaps', function(data) {
-  	  var db = app.db;
-  	  //console.log(db);
-  	  var query = db.models.Descriptor.find( {'_id': /TAP_/i}, '_id n p h', function(err, data) {
-  	    console.log("in here");
-  	    //console.log(data);
-  	    socket.emit('querytaps', data);
+  	  var query = app.list('TAP').model.find( {'ID': /TAP_/i}, 'ID name package', function(err, data) {
+  	    var tags = [];
+  	    for ( var k in data ) {
+  	    	var tap = {};
+  	    	tap.name = data[k].name;
+  	    	tap.ID = data[k].ID;
+  	    	tap.data = [];
+  	    	for ( var j = 0; j < data[k].package.length; j++ ) {
+  	    		tap.data.push(data[k].package[j].split(',')[0]);
+  	    	}
+  	    	tags.push(tap);
+  	    }
+  	    socket.emit('querytaps', tags);
   	  });
     });
     
     socket.on('querytimedata', function(tapinfo) {
-      var db = app.db;
+      var query = db.models[tapinfo[0]].find({'_t': tapinfo[0]});
+      query.exec(function(err, log) {
+      	var data = {};
+      	var series = [];
+      	log.forEach( function(tap) {
+      		// Change the .v thing.  Obsolete now.
+      		var ts = (new Date(tap.h.Timestamp.v).getTime());
+      		series.push([ts, tap.p[tapinfo[1]].v]);
+      	});
+      	data.name = tapinfo[1];
+      	data.series = series;
+      	socket.emit('querytimedata', data);
+      });
+      /*
       var query = db.models.Descriptor.find( {'_id': tapinfo[0]}, {p: {$elemMatch: {"n" : tapinfo[1]}}})
       query.exec(function(err, data) {
+      	console.log(data);
         var fieldName = data[0].p[0].f;
-        
         var query2 = db.models[tapinfo[0]].find({'_t': tapinfo[0]});
         query2.exec(function(err, log) {
           var data = {};
@@ -43,8 +63,9 @@ module.exports = function(app){
       	data.series = series;
       	socket.emit('querytimedata', data);
       	});
-      });
+      });*/
     });
+    
   }
   
   // Begin authorization of the new groundstation socket connection. 

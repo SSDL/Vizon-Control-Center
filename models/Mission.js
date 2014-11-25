@@ -15,11 +15,8 @@ Mission.add({
 	title: { type: String, required: true },
 	missionId: { type: String },
 	authorizedUsers: { type: Types.Relationship, ref: 'User', index: true, many: true},
-	content: {
-		summary: { type: Types.Html, wysiwyg: true, height: 150 },
-		extended: { type: Types.Html, wysiwyg: true, height: 400 }
-	},
 });
+Mission.relationship({ path: 'taps', ref: 'TAP', refPath: 'missionId'});
 
 Mission.schema.virtual('content.full').get(function() {
 	return this.content.extended || this.content.brief;

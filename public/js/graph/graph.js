@@ -1,21 +1,20 @@
 $(function () {
 	
 	var socket = io.connect('/web');
-	console.log(socket);
-	socket.emit('querytaps', "works");
+	
+	socket.emit('querytaps');
+	
 	socket.on('querytaps', function(data) {
-		console.log(data);
-	  data.forEach(function(data) {
+	  for ( var k in data ) {
 	    var $newli = $( "<li role=presentation class=dropdown-header>");
-	    $newli.text(data._id.toString() + ", " + data.n.toString());
-	    for ( var i = 2; i < data.p.length; i++) {
+	    $newli.text( data[k].ID + ', ' + data[k].name);
+	    for ( var i = 2; i < data[k].data.length; i++) {
 	      var $newa = $( "<a class=variable role=menuitem tabindex=-1 href=#>");
-	      $newa.text(data.p[i].n.toString());
+	      $newa.text(data[k].data[i]);
 	      $newli.append($newa);
-        }
-        $("#dropdown1").append($newli);
-      });
-	  
+      }
+      $("#dropdown1").append($newli);
+    }
 	});
 	
 	socket.on('querytimedata', function(data) {
@@ -61,7 +60,7 @@ $(function () {
 			}
 		},
 		title: {
-			text: 'Battery Voltage'
+			text: 'Data'
 		},
 		
 		series: [],/*[{
@@ -103,7 +102,7 @@ $(function () {
 		},
 		yAxis: {
 			title: {
-				text: 'Battery Voltage (V)'
+				text: 'Value'
 			}/*,
 			minorGridLineWidth: 0,
 			gridLineWidth: 0,
