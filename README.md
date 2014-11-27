@@ -12,4 +12,8 @@ now though.
 Need to change the way models in taplog are made.  I'm no longer using field values,
 so the whole concept of having a f: { n: "", v: * } in there is obsolete.  Doesn't harm
 anyone right now though.
+
+If a TAP model is changed in the admin UI it doesn't update the TAP model saved in cache.
+This needs a fix.
+
 -Arni

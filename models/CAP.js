@@ -2,22 +2,22 @@ var keystone = require('keystone'),
 	Types = keystone.Field.Types;
 
 /**
- * TAP Model
+ * CAP Model
  * ==========
  */
 
-var TAP = new keystone.List('TAP', {
+var CAP = new keystone.List('CAP', {
 	map: { name: 'ID' },
 	autokey: { path: 'slug', from: 'ID missionId ', unique: true }
 });
 
-TAP.add({
+CAP.add({
 	ID: { type: String, required: true },
 	missionId: { type: Types.Relationship, ref: 'Mission', index: true, many: true, initial: true , required: true},
 	name: { type: String },
 	length: { type: Number, required: true, initial: true },
-	package: {type: Types.TextArray, required: true, initial: true}
+	package: {type: Types.TextArray, initial: true}
 });
 
-TAP.defaultColumns = 'ID, name, length, missionId|20%';
-TAP.register();
+CAP.defaultColumns = 'ID, name, length, missionId|20%';
+CAP.register();
