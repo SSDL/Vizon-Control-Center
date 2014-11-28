@@ -23,9 +23,13 @@ TAP.add({
 TAP.schema.post('save', function(tap) {
 	TAP.model.populate(tap, 'missionId', function(err, data) {
 		//console.log(keystone.db);
-		delete keystone.mongoose.connection.models[data.missionId[0].missionId + '-' + data.ID];
+		for (var k in data.missionId) {
+			delete keystone.mongoose.connection.models[data.missionId[k].missionId + '-' + data.ID];
+		}
 		console.log(keystone.mongoose.connection.models);
-		keystone.mongoose.connection.funcs.loadPacketModel(data.missionId[0].missionId + '-' + data.ID);
+		for (var k in data.missionId) {
+			keystone.mongoose.connection.funcs.loadPacketModel(data.missionId[k].missionId + '-' + data.ID);
+		}
 		console.log(keystone.mongoose.connection.models);
 	});
 });
