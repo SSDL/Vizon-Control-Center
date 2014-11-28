@@ -9,7 +9,12 @@ block js
 block content
   br
   br
-  .dropdown
+  .btn-group
+    button#missionddb.btn.btn-default.btn-primary.dropdown-toggle(type='button', data-toggle='dropdown')
+        | Select Mission
+        span.caret
+      ul#missiondd.dropdown-menu
+  .btn-group
     button#dropdownMenu1.btn.btn-default.btn-primary.dropdown-toggle(type='button', data-toggle='dropdown')
         | Select Data
         span.caret

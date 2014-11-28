@@ -21,6 +21,11 @@ Mission.add({
 
 Mission.relationship({ path: 'taps', ref: 'TAP', refPath: 'missionId'});
 
+Mission.schema.methods.taps = function(cb){
+  return keystone.list('TAP').model.find()
+    .where('missionId', this.id )
+    .exec(cb);
+};
 
 Mission.defaultColumns = 'missionId, title';
 Mission.register();

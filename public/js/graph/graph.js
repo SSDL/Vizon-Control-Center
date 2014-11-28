@@ -2,7 +2,17 @@ $(function () {
 	
 	var socket = io.connect('/web');
 	
-	socket.emit('querytaps');
+	socket.emit('querymissions');
+	
+	socket.on('querymissions', function(data) {
+		for (var k in data) {
+			var $newli = $(" <li role=presentation >");
+			var $newa = $("<a class=missionvar role=menuitem tabindex=-1 href=#>");
+			$newa.text( data[k].missionId + ', ' + data[k].title);
+			$newli.append($newa);
+			$("#missiondd").append($newli);
+		}
+	});
 	
 	socket.on('querytaps', function(data) {
 	  for ( var k in data ) {
@@ -27,9 +37,17 @@ $(function () {
 	  });
 	});
 	
+	$("#missiondd").on('click', '.missionvar', function() {
+	  var variable = $(this).text();
+	  $("#dropdown1").empty();
+	  $("#selectedlist").empty();
+	  $("#missionddb")[0].innerText = variable;
+	  socket.emit('querytaps', variable.split(',')[0]);
+	});
+	
 	$("#dropdown1").on('click', '.variable', function() {
 	  var variable = $(this).text();
-	  var tap = $(this).parent().contents()[0].wholeText.split(",")[0];
+	  var tap = $("#missionddb")[0].innerText.split(',')[0] + '-' + $(this).parent().contents()[0].wholeText.split(",")[0];
 	  var $newl = $( "<li class=list-group-item>" );
 	  $newl.text(variable);
 	  var $newb = $( "<button class=rmvbutton ><span class=\"glyphicon glyphicon-remove\">" );

@@ -5,7 +5,7 @@ module.exports = function(ks){
     , extend = require('mongoose-schema-extend')
     , config = require('./routes/config')
     , utils = require('./routes/utils')
-    , db = ks.db = mongoose.createConnection(config.mongodb.uri);
+    , db = ks.db = mongoose.connection; //mongoose.createConnection(config.mongodb.uri);
 
   // create the mongodb connection through mongoose.
   // attach basic event handlers to the connection for logging purposes
@@ -158,7 +158,7 @@ module.exports = function(ks){
   db.schemas.TAP.methods.getNewSNAPTime = getNewSNAPTime;
   db.schemas.TAP.set('toObject', { getters: true, virtuals: true });
   db.schemas.TAP.set('toJSON', { getters: true, virtuals: true });
-  db.model('TAP', db.schemas.TAP);
+  db.model('TAPlog', db.schemas.TAP);
   
   // CAP setup
   db.schemas.CAP = mongoose.Schema({ 
@@ -168,7 +168,7 @@ module.exports = function(ks){
   db.schemas.CAP.methods.getNewSNAPTime = getNewSNAPTime;
   db.schemas.CAP.set('toObject', { getters: true, virtuals: true });
   db.schemas.CAP.set('toJSON', { getters: true, virtuals: true });
-  db.model('CAP', db.schemas.CAP);
+  db.model('CAPlog', db.schemas.CAP);
   
   
   // this database function returns the descriptor for a given packet descriptor typeid.
@@ -184,9 +184,11 @@ module.exports = function(ks){
   db.funcs.loadPacketDescriptors2 = function(desc_typeid, callback){
     var regex = /.+_\d+/; // match all xxx_###
     if(typeof desc_typeid === 'function') callback = desc_typeid
-    else if(desc_typeid) regex = new RegExp('^'+desc_typeid + '$') // matches the descriptor typeid specified
-    ks.list('TAP').model.where('ID').regex(regex).sort('ID').populate('missionId').exec(callback);
-    ks.list('CAP').model.where('ID').regex(regex).sort('ID').populate('missionId').exec(callback);
+    else if(desc_typeid) regex = new RegExp('^'+desc_typeid.split('-')[1] + '$') // matches the descriptor typeid specified
+    var tq = ks.list('TAP').model.where('ID').regex(regex).sort('ID').populate('missionId');
+    var cq = ks.list('CAP').model.where('ID').regex(regex).sort('ID').populate('missionId');
+    tq.exec(callback);
+    cq.exec(callback);
   }
   // this database function loads a packet model based on a descriptor typeid. if the model
   // for the typeid is cached, that model is passed to the callback. otherwise, the above 
@@ -249,42 +251,49 @@ module.exports = function(ks){
           utils.log(err);
         }
         else {
+        	console.log(descriptors);
           for(var k in descriptors) { // for each retrieved descriptor, even if 1
             var descriptor = descriptors[k].toObject(); // call toObject to only get "descriptor elements", not the extra Mongoose stuff
 						//console.log(m);
 						for (var m in descriptor.missionId) {
-							var mission = descriptor.missionId[m];
-							var isTAP = /^TAP_.*/.test(descriptor.ID);
-							var isCAP = /^CAP_.*/.test(descriptor.ID);
-							var headerliteral = { mid: { type: Number } };
-							var payloadliteral = {}
-							var namesliteral = {}
-							var header;
-							if (isTAP)
-								header = mission.TAPHeader;
-							else if (isCAP)
-								header = mission.CAPHeader;
-							for(var prop in header) {
-								if(header[prop].split(',')[0] == 'TAP ID') continue;
-								else if(header[prop].split(',')[0] == 'CAP ID') continue;
-								if(header[prop].split(',')[0]) // if the property is an object with a fieldname property of its own
-									headerliteral[header[prop].split(',')[0]] = setupTAPSchemaLiteral2(header[prop]);
+							// This if statement is a very sketchy workaround for updating tap info
+							// It's caused by there existing two taps e.g. called TAP_1 with different 
+							// mission ID's. The regex in the descriptor load will find both, try to re-define
+							// them and crash the system.
+							if(!db.models[descriptor.missionId[m].missionId  + '-' + descriptor.ID]) {
+								var mission = descriptor.missionId[m];
+								var isTAP = /^TAP_.*/.test(descriptor.ID);
+								var isCAP = /^CAP_.*/.test(descriptor.ID);
+								var headerliteral = { mid: { type: Number } };
+								var payloadliteral = {}
+								var namesliteral = {}
+								var header;
+								if (isTAP)
+									header = mission.TAPHeader;
+								else if (isCAP)
+									header = mission.CAPHeader;
+								for(var prop in header) {
+									if(header[prop].split(',')[0] == 'TAP ID') continue;
+									else if(header[prop].split(',')[0] == 'CAP ID') continue;
+									if(header[prop].split(',')[0]) // if the property is an object with a fieldname property of its own
+										headerliteral[header[prop].split(',')[0]] = setupTAPSchemaLiteral2(header[prop]);
+								}
+								for(var prop in descriptor.package) {
+									if (descriptor.package[prop].split(',')[0] && isTAP) // if the property is an object with a fieldname property of its own
+										payloadliteral[descriptor.package[prop].split(',')[0]] = setupTAPSchemaLiteral2(descriptor.package[prop]);
+									else if (descriptor.package[prop].split(',')[0] && isCAP)
+										payloadliteral[descriptor.package[prop].split(',')[0]] = setupCAPSchemaLiteral2(descriptor.package[prop]);
+								}
+								var newSchema = db.schemas[ (descriptor.ID.split('_')[0]) ].extend( { // extend the descriptor base type (TAP, CAP, etc)
+									h: headerliteral,
+									p: payloadliteral
+								} );
+								newSchema.virtual('h.t').get(function(){ return parseInt(this._t.split('_')[1]); });
+								newSchema.index({ '_t': 1, 'h.s': -1, 'h.mid':1}, { unique: true });
+								
+								db.model(descriptor.missionId[m].missionId  + '-' + descriptor.ID, newSchema);
+								utils.logText(descriptor.missionId[m].missionId  + '-' + descriptor.ID + ' ' + descriptor.name, 'LOAD'.cyan);
 							}
-							for(var prop in descriptor.package) {
-								if (descriptor.package[prop].split(',')[0] && isTAP) // if the property is an object with a fieldname property of its own
-									payloadliteral[descriptor.package[prop].split(',')[0]] = setupTAPSchemaLiteral2(descriptor.package[prop]);
-								else if (descriptor.package[prop].split(',')[0] && isCAP)
-									payloadliteral[descriptor.package[prop].split(',')[0]] = setupCAPSchemaLiteral2(descriptor.package[prop]);
-							}
-							var newSchema = db.schemas[ descriptor.ID.split('_')[0] ].extend( { // extend the descriptor base type (TAP, CAP, etc)
-								h: headerliteral,
-								p: payloadliteral
-							} );
-							newSchema.virtual('h.t').get(function(){ return parseInt(this._t.split('_')[1]); });
-							newSchema.index({ '_t': 1, 'h.s': -1, 'h.mid':1}, { unique: true });
-							
-							db.model(descriptor.missionId[m].missionId + '-' + descriptor.ID, newSchema);
-							utils.logText(descriptor.missionId[m].missionId + '-' + descriptor.ID + ' ' + descriptor.name, 'LOAD'.cyan);
 						}
           }
           if(callback) callback(db.model(desc_typeid)); // return the model if available, otherwise will be undefined so make sure it's handled in callback
