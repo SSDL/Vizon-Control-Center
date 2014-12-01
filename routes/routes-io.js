@@ -129,13 +129,15 @@ module.exports = function(app){
         return;
       }
       utils.logText('Descriptor request for ' + desc_typeid);
-      db.funcs.loadPacketDescriptors(desc_typeid, function(err,descriptors){
+      db.funcs.loadPacketDescriptors2(desc_typeid, function(err,descriptors){
         for(var i in descriptors) {
           descriptors[i] = descriptors[i].toJSON(); // needed to make the object purely JSON, no mongoose stuff
-          data[i] = {
-            h: descriptors[i].h,
-            p: descriptors[i].p, 
-          };
+          for (var m in descriptors[i].missionId) {
+          	data.push({
+            	h: descriptors[i].missionId[m][descriptors[i].ID.split('_')[0] + "Header"],
+            	p: descriptors[i].package, 
+          	});
+          }
         }
         callback(data);
       });
@@ -149,7 +151,7 @@ module.exports = function(app){
   
   
   function recordTAP(tap, socket) {
-    db.funcs.loadPacketModel('TAP_'+tap.h.t, function(tapmodel){
+    db.funcs.loadPacketModel(tap.h.mid + '-' + 'TAP_'+tap.h.t, function(tapmodel){
       if(tapmodel) {
         tapmodel.create(tap , function (err, newtap) {
           if (err && err.code == 11000) { // duplicate key error
@@ -159,10 +161,8 @@ module.exports = function(app){
             utils.log(err);
           } else {
             createConfirmation(socket.accesslog.gsid, tap, newtap._t + ' logged'.green, socket);
-            for (var i = 0; i < app.listeners.length; i++) {
-              app.listeners[i].io.of('/web').in(tap.h.mid).emit('new-tap', newtap._t);
-            }
-            
+            // Where does this line go?
+            app.listener.io.of('/web').in(tap.h.mid).emit('new-tap', newtap._t);
             findCAPs(newtap, socket);
           }
         });

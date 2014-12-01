@@ -26,11 +26,9 @@ TAP.schema.post('save', function(tap) {
 		for (var k in data.missionId) {
 			delete keystone.mongoose.connection.models[data.missionId[k].missionId + '-' + data.ID];
 		}
-		console.log(keystone.mongoose.connection.models);
 		for (var k in data.missionId) {
 			keystone.mongoose.connection.funcs.loadPacketModel(data.missionId[k].missionId + '-' + data.ID);
 		}
-		console.log(keystone.mongoose.connection.models);
 	});
 });
 

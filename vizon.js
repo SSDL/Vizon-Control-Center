@@ -97,8 +97,9 @@ keystone.set('email tests', require('./routes/emails'));
 
 keystone.set('nav', {
 	'missions' : 'missions',
+	'TAPs': 'taps',
+	'CAPs': 'caps',
 	'ground-stations' : 'ground-stations',
-	'posts': ['posts', 'post-categories'],
 	'enquiries': 'enquiries',
 	'users': 'users',
 });
