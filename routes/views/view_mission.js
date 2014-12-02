@@ -1,5 +1,5 @@
 var keystone = require('keystone');
-var Work = keystone.list('Mission').model;
+var Mission = keystone.list('Mission').model;
 
 exports = module.exports = function(req, res) {
 
@@ -10,7 +10,7 @@ exports = module.exports = function(req, res) {
 	locals.section = 'Missions';
 
 	var mission_slug = req.params.mission;
-	Mission.findOne({slug : mission_slug}).exec(function(err, work) {
+	Mission.findOne({slug : mission_slug}).exec(function(err, mission) {
 		if (err || !mission) {
 			console.error(err);
 			res.redirect('errors/404');
