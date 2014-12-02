@@ -43,9 +43,12 @@ exports = module.exports = function(app) {
 
   app.get('/space', routes.views.space);
   app.get('/graph', middleware.requireUser, routes.views.graph);
+  app.get('/mission', middleware.requireUser, routes.views.missions);
   app.get('/missions', middleware.requireUser, routes.views.missions);
   app.all('/download', middleware.requireUser, routes.views.download);
   app.get('/about', routes.views.about);
+  
+  app.get('/mission/:mission',routes.views.view_mission);
 
 
   app.all('/signup', routes.views.session.signup);
