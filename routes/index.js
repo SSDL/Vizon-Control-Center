@@ -42,10 +42,10 @@ exports = module.exports = function(app) {
   app.all('/contact', routes.views.contact);
 
   app.get('/space', routes.views.space);
-  app.get('/graph', routes.views.graph);
-  app.get('/missions', routes.views.missions);
+  app.get('/graph', middleware.requireUser, routes.views.graph);
+  app.get('/missions', middleware.requireUser, routes.views.missions);
+  app.all('/download', middleware.requireUser, routes.views.download);
   app.get('/about', routes.views.about);
-  app.all('/download', routes.views.download);
 
 
   app.all('/signup', routes.views.session.signup);
