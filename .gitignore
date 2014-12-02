@@ -30,4 +30,5 @@ node_modules
 .project
 
 site.min.css
+nohup.out
 .DS_Store

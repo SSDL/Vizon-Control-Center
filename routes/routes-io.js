@@ -75,14 +75,15 @@ module.exports = function(app){
         },
         // lookup the security key for the provided gsid
         gs: function(callback) {
-          db.models.Groundstation.findOne({ _id:db.mongoose.Types.ObjectId(gsid)}).select('key').exec(callback);
+          app.list("GroundStation").model.findOne({ _id:db.mongoose.Types.ObjectId(gsid)}).select('key').exec(callback);
         },
         // log the access attempt (defaults to fail, can update to pass later)
         log: function(callback) {
-          db.models.AccessLog.create({
-            gsid: gsid,
-            ip: socket.handshake.headers['x-forwarded-for'] || socket.handshake.address.address
-          }, callback);
+          //db.models.AccessLog.create({
+          //  gsid: gsid,
+          //  ip: socket.handshake.headers['x-forwarded-for'] || socket.handshake.address.address
+         // }
+	//, callback);
         }
       },
       function(err, results) {
