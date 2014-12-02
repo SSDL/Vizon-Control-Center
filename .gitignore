@@ -28,3 +28,5 @@ node_modules
 .lock-wscript
 #eclipse project file
 .project
+
+site.min.css
