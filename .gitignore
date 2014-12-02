@@ -30,3 +30,4 @@ node_modules
 .project
 
 site.min.css
+.DS_Store
