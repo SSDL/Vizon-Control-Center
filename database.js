@@ -5,7 +5,7 @@ module.exports = function(ks){
     , extend = require('mongoose-schema-extend')
     , config = require('./routes/config')
     , utils = require('./routes/utils')
-    , db = ks.db = mongoose.createConnection(config.mongodb.uri);
+    , db = ks.db = mongoose.connection; //mongoose.createConnection(config.mongodb.uri);
 
   // create the mongodb connection through mongoose.
   // attach basic event handlers to the connection for logging purposes
@@ -34,7 +34,7 @@ module.exports = function(ks){
   function getNewSNAPTime(msUTC) {
     if(!msUTC) msUTC = (new Date()).valueOf();
     var obj = this.toObject({getters: false});
-    return (obj.h.ts ? obj.h.ts : obj.h.xt) + Math.floor((msUTC - (new Date(this.d)).valueOf())/1000);
+    return (obj.h.Timestamp ? obj.h.Timestamp : obj.h["Execution Time"]) + Math.floor((msUTC - (new Date(this.d)).valueOf())/1000);
   }
   
   // this function dynamically crates the literal for a given TAP descriptor property.
@@ -99,11 +99,12 @@ module.exports = function(ks){
   // the only conversion type for which a getter is defined now is SNAP time. this function
   // converts a stored value of 0 into the current SNAP time.
   function setupCAPSchemaLiteral(desc_prop) {
+  	var desc = desc_prop.split(',');
     var propertyliteral = { type: Number }; // create new schema property literal for plain number
-    if(desc_prop.c == 'snap') {// snap time
+    if(desc[2] == 'snap') {// snap time
       propertyliteral.get = function(val) {
         var output = val;
-        if((val == 0) && (desc_prop.d == 'snapnow')) {// secondary conversion type
+        if((val == 0) && (desc[3] == 'snapnow')) {// secondary conversion type
           output = Math.floor(((new Date()).getTime() - (new Date('Jan 1, 2000')).getTime())/1000);
         }
         else if(val == 0)
@@ -113,9 +114,7 @@ module.exports = function(ks){
     }
     return propertyliteral;
   }
-  ks_TAP = ks.list('TAP');
-  //console.log(ks_TAP);
-  // Descriptor setup
+  
   db.schemas.Descriptor = mongoose.Schema({
     _id: String,
     n: String,
@@ -159,7 +158,7 @@ module.exports = function(ks){
   db.schemas.TAP.methods.getNewSNAPTime = getNewSNAPTime;
   db.schemas.TAP.set('toObject', { getters: true, virtuals: true });
   db.schemas.TAP.set('toJSON', { getters: true, virtuals: true });
-  db.model('TAP', db.schemas.TAP);
+  db.model('TAPlog', db.schemas.TAP);
   
   // CAP setup
   db.schemas.CAP = mongoose.Schema({ 
@@ -169,7 +168,7 @@ module.exports = function(ks){
   db.schemas.CAP.methods.getNewSNAPTime = getNewSNAPTime;
   db.schemas.CAP.set('toObject', { getters: true, virtuals: true });
   db.schemas.CAP.set('toJSON', { getters: true, virtuals: true });
-  db.model('CAP', db.schemas.CAP);
+  db.model('CAPlog', db.schemas.CAP);
   
   
   // this database function returns the descriptor for a given packet descriptor typeid.
@@ -185,8 +184,16 @@ module.exports = function(ks){
   db.funcs.loadPacketDescriptors2 = function(desc_typeid, callback){
     var regex = /.+_\d+/; // match all xxx_###
     if(typeof desc_typeid === 'function') callback = desc_typeid
-    else if(desc_typeid) regex = new RegExp('^'+desc_typeid + '$') // matches the descriptor typeid specified
-    ks.list('TAP').model.where('ID').regex(regex).sort('ID').exec(callback);
+    else if(desc_typeid) {
+    	regex = new RegExp('^'+desc_typeid.split('-')[1] + '$') // matches the descriptor typeid specified
+    	var tq = ks.list('TAP').model.where('ID').regex(regex).sort('ID').populate('missionId', null, {missionId: desc_typeid.split('-')[0]} );
+    	var cq = ks.list('CAP').model.where('ID').regex(regex).sort('ID').populate('missionId', null, {missionId: desc_typeid.split('-')[0]} );
+    } else {
+    	var tq = ks.list('TAP').model.where('ID').regex(regex).sort('ID').populate('missionId');
+    	var cq = ks.list('CAP').model.where('ID').regex(regex).sort('ID').populate('missionId');
+    }
+  	tq.exec(callback);
+    cq.exec(callback);
   }
   // this database function loads a packet model based on a descriptor typeid. if the model
   // for the typeid is cached, that model is passed to the callback. otherwise, the above 
@@ -205,6 +212,8 @@ module.exports = function(ks){
         else {
           for(var k in descriptors) { // for each retrieved descriptor, even if 1
             var descriptor = descriptors[k].toObject(); // call toObject to only get "descriptor elements", not the extra Mongoose stuff
+            console.log(descriptor);
+            console.log(hello);
             var isTAP = /^TAP_.*/.test(descriptor._id);
             var isCAP = /^CAP_.*/.test(descriptor._id);
             var headerliteral = { mid: { type: Number } }
@@ -249,33 +258,41 @@ module.exports = function(ks){
         else {
           for(var k in descriptors) { // for each retrieved descriptor, even if 1
             var descriptor = descriptors[k].toObject(); // call toObject to only get "descriptor elements", not the extra Mongoose stuff
-            var isTAP = /^TAP_.*/.test(descriptor.ID);
-            var isCAP = /^CAP_.*/.test(descriptor.ID);
-            var headerliteral = { mid: { type: Number } }
-            var payloadliteral = {}
-            var namesliteral = {}
-            for(var prop in descriptor.header) {
-              if(descriptor.header[prop].split(',')[0] == 'TAP ID') continue;
-              if(descriptor.header[prop].split(',')[0] && isTAP) // if the property is an object with a fieldname property of its own
-                headerliteral[descriptor.header[prop].split(',')[0]] = setupTAPSchemaLiteral2(descriptor.header[prop]);
-              else if(descriptor.header[prop].split(',')[0] && isCAP)
-                headerliteral[descriptor.header[prop].split(',')[0]] = setupCAPSchemaLiteral2(descriptor.header[prop]);
-            }
-            for(var prop in descriptor.package) {
-              if (descriptor.package[prop].split(',')[0] && isTAP) // if the property is an object with a fieldname property of its own
-                payloadliteral[descriptor.package[prop].split(',')[0]] = setupTAPSchemaLiteral2(descriptor.package[prop]);
-              else if (descriptor.package[prop].split(',')[0] && isCAP)
-                payloadliteral[descriptor.package[prop].split(',')[0]] = setupCAPSchemaLiteral2(descriptor.package[prop]);
-            }
-            var newSchema = db.schemas[ descriptor.ID.split('_')[0] ].extend( { // extend the descriptor base type (TAP, CAP, etc)
-              h: headerliteral,
-              p: payloadliteral
-            } );
-            //newSchema.virtual('h.t').get(function(){ return parseInt(this._t.split('_')[1]); });
-            //newSchema.index({ '_t': 1, 'h.s': -1, 'h.mid':1}, { unique: true });
-            db.model(descriptor.ID, newSchema);
-            //console.log(db.models);
-            utils.logText(descriptor.ID + ' ' + descriptor.name, 'LOAD'.cyan);
+						//console.log(m);
+						for (var m in descriptor.missionId) {
+							var mission = descriptor.missionId[m];
+							var isTAP = /^TAP_.*/.test(descriptor.ID);
+							var isCAP = /^CAP_.*/.test(descriptor.ID);
+							var headerliteral = { mid: { type: Number } };
+							var payloadliteral = {}
+							var namesliteral = {}
+							var header;
+							if (isTAP)
+								header = mission.TAPHeader;
+							else if (isCAP)
+								header = mission.CAPHeader;
+							for(var prop in header) {
+								if(header[prop].split(',')[0] == 'TAP ID') continue;
+								else if(header[prop].split(',')[0] == 'CAP ID') continue;
+								if(header[prop].split(',')[0]) // if the property is an object with a fieldname property of its own
+									headerliteral[header[prop].split(',')[0]] = setupTAPSchemaLiteral2(header[prop]);
+							}
+							for(var prop in descriptor.package) {
+								if (descriptor.package[prop].split(',')[0] && isTAP) // if the property is an object with a fieldname property of its own
+									payloadliteral[descriptor.package[prop].split(',')[0]] = setupTAPSchemaLiteral2(descriptor.package[prop]);
+								else if (descriptor.package[prop].split(',')[0] && isCAP)
+									payloadliteral[descriptor.package[prop].split(',')[0]] = setupCAPSchemaLiteral2(descriptor.package[prop]);
+							}
+							var newSchema = db.schemas[ (descriptor.ID.split('_')[0]) ].extend( { // extend the descriptor base type (TAP, CAP, etc)
+								h: headerliteral,
+								p: payloadliteral
+							} );
+							newSchema.virtual('h.t').get(function(){ return parseInt(this._t.split('_')[1]); });
+							newSchema.index({ '_t': 1, 'h.s': -1, 'h.mid':1}, { unique: true });
+							
+							db.model(descriptor.missionId[m].missionId  + '-' + descriptor.ID, newSchema);
+							utils.logText(descriptor.missionId[m].missionId  + '-' + descriptor.ID + ' ' + descriptor.name, 'LOAD'.cyan);
+						}
           }
           if(callback) callback(db.model(desc_typeid)); // return the model if available, otherwise will be undefined so make sure it's handled in callback
         }

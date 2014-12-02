@@ -1,9 +1,17 @@
 extends ../layouts/default
 
+block js
+  script(src='/socket.io/socket.io.js')
+  script(src='/js/missions.js')
+  
 block content
-	.container
-		h2 Missions
-		p Stanford University SSDL
-		
-		for mission in missions 
-			p #{mission.title}
+  br
+  br
+  .btn-group
+    button#missionddb.btn.btn-default.btn-primary.dropdown-toggle(type='button', data-toggle='dropdown')
+        | Select Mission
+        span.caret
+      ul#missiondd.dropdown-menu
+  
+  ul#selectedlist.list-group
+

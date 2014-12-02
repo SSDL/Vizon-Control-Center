@@ -15,26 +15,34 @@ module.exports = function(app){
     socket.on('join-mid',function(mid){
       socket.join(mid);
     });
+    
+    socket.on('querymissions', function() {
+    	var query = app.list('Mission').model.find( {}, 'title missionId', function(err,data) {
+    		socket.emit('querymissions', data);
+    	});
+    });
+    
     socket.on('querytaps', function(data) {
-  	  var query = app.list('TAP').model.find( {'ID': /TAP_/i}, 'ID name package', function(err, data) {
-  	    var tags = [];
-  	    for ( var k in data ) {
-  	    	var tap = {};
-  	    	tap.name = data[k].name;
-  	    	tap.ID = data[k].ID;
-  	    	tap.data = [];
-  	    	for ( var j = 0; j < data[k].package.length; j++ ) {
-  	    		tap.data.push(data[k].package[j].split(',')[0]);
+    	app.list('Mission').model.find({ missionId: data}, '_id', function(err, data) {
+    		app.list('TAP').model.where('missionId', data[0]._id).exec(function(err, data) {
+    			taps = [];
+    			for ( var k in data ) {
+    				tap = {}
+  	    		tap.name = data[k].name;
+  	    		tap.ID = data[k].ID;
+  	    		tap.data = [];
+  	    		for ( var j = 0; j < data[k].package.length; j++ ) {
+  	    			tap.data.push(data[k].package[j].split(',')[0]);
+  	    		}
+  	    		taps.push(tap);
   	    	}
-  	    	tags.push(tap);
-  	    }
-  	    socket.emit('querytaps', tags);
-  	  });
+  	    socket.emit('querytaps', taps);
+    		});
+    	});
     });
     
     socket.on('querytimedata', function(tapinfo) {
-      var query = db.models[tapinfo[0]].find({'_t': tapinfo[0]});
-      query.exec(function(err, log) {
+      var query = db.models[tapinfo[0]].find({}, function(err, log) {
       	var data = {};
       	var series = [];
       	log.forEach( function(tap) {
@@ -46,24 +54,6 @@ module.exports = function(app){
       	data.series = series;
       	socket.emit('querytimedata', data);
       });
-      /*
-      var query = db.models.Descriptor.find( {'_id': tapinfo[0]}, {p: {$elemMatch: {"n" : tapinfo[1]}}})
-      query.exec(function(err, data) {
-      	console.log(data);
-        var fieldName = data[0].p[0].f;
-        var query2 = db.models[tapinfo[0]].find({'_t': tapinfo[0]});
-        query2.exec(function(err, log) {
-          var data = {};
-          var series = [];
-      	  log.forEach( function(tap) {
-      	    var ts = (new Date(tap.h.ts.v).getTime())
-      	    series.push([ts, tap.p[fieldName].v]);
-      	});
-      	data.name = tapinfo[1];
-      	data.series = series;
-      	socket.emit('querytimedata', data);
-      	});
-      });*/
     });
     
   }
@@ -139,13 +129,15 @@ module.exports = function(app){
         return;
       }
       utils.logText('Descriptor request for ' + desc_typeid);
-      db.funcs.loadPacketDescriptors(desc_typeid, function(err,descriptors){
+      db.funcs.loadPacketDescriptors2(desc_typeid, function(err,descriptors){
         for(var i in descriptors) {
           descriptors[i] = descriptors[i].toJSON(); // needed to make the object purely JSON, no mongoose stuff
-          data[i] = {
-            h: descriptors[i].h,
-            p: descriptors[i].p, 
-          };
+          for (var m in descriptors[i].missionId) {
+          	data.push({
+            	h: descriptors[i].missionId[m][descriptors[i].ID.split('_')[0] + "Header"],
+            	p: descriptors[i].package, 
+          	});
+          }
         }
         callback(data);
       });
@@ -159,7 +151,7 @@ module.exports = function(app){
   
   
   function recordTAP(tap, socket) {
-    db.funcs.loadPacketModel('TAP_'+tap.h.t, function(tapmodel){
+    db.funcs.loadPacketModel(tap.h.mid + '-' + 'TAP_'+tap.h.t, function(tapmodel){
       if(tapmodel) {
         tapmodel.create(tap , function (err, newtap) {
           if (err && err.code == 11000) { // duplicate key error
@@ -169,10 +161,8 @@ module.exports = function(app){
             utils.log(err);
           } else {
             createConfirmation(socket.accesslog.gsid, tap, newtap._t + ' logged'.green, socket);
-            for (var i = 0; i < app.listeners.length; i++) {
-              app.listeners[i].io.of('/web').in(tap.h.mid).emit('new-tap', newtap._t);
-            }
-            
+            // Where does this line go?
+            app.listener.io.of('/web').in(tap.h.mid).emit('new-tap', newtap._t);
             findCAPs(newtap, socket);
           }
         });
