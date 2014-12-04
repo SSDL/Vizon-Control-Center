@@ -34,7 +34,7 @@ var routes = {
 
 // Setup Route Bindings
 exports = module.exports = function(app) {
-
+  console.log("Test 2");
   // Views
   app.get('/', routes.views.index);
   app.get('/blog/:category?', routes.views.blog);
@@ -45,7 +45,7 @@ exports = module.exports = function(app) {
   app.get('/graph', middleware.requireUser, routes.views.graph);
   app.get('/mission', middleware.requireUser, routes.views.missions);
   app.get('/missions', middleware.requireUser, routes.views.missions);
-  
+
   app.get('/gs', middleware.requireUser, routes.views.ground_stations);
   app.get('/ground-stations', middleware.requireUser, routes.views.ground_stations);
 
