@@ -78,17 +78,10 @@ module.exports = function(app){
           app.list("GroundStation").model.findOne({ _id:db.mongoose.Types.ObjectId(gsid)}).select('key').exec(callback);
         },
         // log the access attempt (defaults to fail, can update to pass later)
-        log: function(callback) {
-          //db.models.AccessLog.create({
-          //  gsid: gsid,
-          //  ip: socket.handshake.headers['x-forwarded-for'] || socket.handshake.address.address
-         // }
-	//, callback);
-        }
       },
       function(err, results) {
-        if (err || !(results.gs && results.gs.key) ) {
-          utils.logText('GS ' + results.log.gsid + ' Lookup', 'DENY'.yellow);
+	if (err || !(results.gs && results.gs.key) ) {
+          utils.logText('GS ' + ' Lookup', 'DENY'.yellow);
           socket.emit('auth-fail');
           socket.disconnect();
           return;
@@ -98,20 +91,20 @@ module.exports = function(app){
           .createHmac(challenge.alg, results.gs.key)
           .update(challenge.data)
           .digest(challenge.enc);
-        socket.emit('auth-challenge', challenge, function(response) {
-          if(response != answer) {
+	socket.emit('auth-challenge', challenge, function(response) {
+	  if(response != answer) {
             socket.emit('auth-fail');
             socket.disconnect();
-            utils.logText('GS ' + results.log.gsid + ' Challenge', 'DENY'.yellow);
+            utils.logText('GS ' + ' Challenge', 'DENY'.yellow);
             return;
           }
           socket.gs = results.gs;
-          socket.accesslog = results.log;
+          //socket.accesslog = results.log;
           handleGSSocketConnection(socket);
-          utils.logText('GS ' + results.log.gsid, 'AUTH'.green);
+          utils.logText('GS ', 'AUTH'.green);
           socket.emit('auth-pass');
-          results.log.auth = true;
-          results.log.save();
+          //results.log.auth = true;
+          //results.log.save();
         });
       });
     });
@@ -131,9 +124,10 @@ module.exports = function(app){
       }
       utils.logText('Descriptor request for ' + desc_typeid);
       db.funcs.loadPacketDescriptors2(desc_typeid, function(err,descriptors){
-        for(var i in descriptors) {
-          descriptors[i] = descriptors[i].toJSON(); // needed to make the object purely JSON, no mongoose stuff
-          for (var m in descriptors[i].missionId) {
+	for(var i in descriptors) {
+	  descriptors[i] = descriptors[i].toJSON(); // needed to make the object purely JSON, no mongoose stuff
+          
+	  for (var m in descriptors[i].missionId) {
           	data.push({
             	h: descriptors[i].missionId[m][descriptors[i].ID.split('_')[0] + "Header"],
             	p: descriptors[i].package, 
@@ -146,22 +140,24 @@ module.exports = function(app){
     
     socket.on('tap', function(packet) {
       recordTAP(packet, socket);
-      logPacket(packet, 'TAP', 'from GS ' + socket.accesslog.gsid);
+      logPacket(packet, 'TAP', 'from GS ');
     });
   } 
   
   
   function recordTAP(tap, socket) {
-    db.funcs.loadPacketModel(tap.h.mid + '-' + 'TAP_'+tap.h.t, function(tapmodel){
+   console.log(tap) 
+   db.funcs.loadPacketModel(tap.h.mid + '-' + 'TAP_'+tap.h['TAP ID'], function(tapmodel){
       if(tapmodel) {
-        tapmodel.create(tap , function (err, newtap) {
+	  tapmodel.create(tap , function (err, newtap) {
+	  console.log(err);
           if (err && err.code == 11000) { // duplicate key error
-            createConfirmation(socket.accesslog.gsid, tap, 'TAP_' + tap.h.t + ' already logged'.red, socket);
+            createConfirmation(tap, 'TAP_' + tap.h.t + ' already logged'.red, socket);
           } else if(err) {
-            createConfirmation(socket.accesslog.gsid, tap, 'TAP_' + tap.h.t + ' not saved - db error'.red, socket);
+            createConfirmation(tap, 'TAP_' + tap.h.t + ' not saved - db error'.red, socket);
             utils.log(err);
           } else {
-            createConfirmation(socket.accesslog.gsid, tap, newtap._t + ' logged'.green, socket);
+            createConfirmation(tap, newtap._t + ' logged'.green, socket);
             // Where does this line go?
             app.listener.io.of('/web').in(tap.h.mid).emit('new-tap', newtap._t);
             findCAPs(newtap, socket);
@@ -188,7 +184,7 @@ module.exports = function(app){
   }
   
   
-  function createConfirmation(gsid, packet, text, socket) {
+  function createConfirmation(packet, text, socket) {
     var hash = crypto.createHash('sha1').update(JSON.stringify(packet)).digest('hex');
     packet = hash.substring(0,6) + ' ' + text;
     socket.emit('info',packet);

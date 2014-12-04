@@ -185,15 +185,15 @@ module.exports = function(ks){
     var regex = /.+_\d+/; // match all xxx_###
     if(typeof desc_typeid === 'function') callback = desc_typeid
     else if(desc_typeid) {
-    	regex = new RegExp('^'+desc_typeid.split('-')[1] + '$') // matches the descriptor typeid specified
-    	var tq = ks.list('TAP').model.where('ID').regex(regex).sort('ID').populate('missionId', null, {missionId: desc_typeid.split('-')[0]} );
-    	var cq = ks.list('CAP').model.where('ID').regex(regex).sort('ID').populate('missionId', null, {missionId: desc_typeid.split('-')[0]} );
+    	var tapid = desc_typeid.split('-')[1];
+	regex = new RegExp('^'+ tapid + '$') // matches the descriptor typeid specified	
+	var tq = ks.list(tapid.split('_')[0]).model.where('ID').regex(regex).sort('ID').populate('missionId', null, {missionId: desc_typeid.split('-')[0]} );
     } else {
     	var tq = ks.list('TAP').model.where('ID').regex(regex).sort('ID').populate('missionId');
     	var cq = ks.list('CAP').model.where('ID').regex(regex).sort('ID').populate('missionId');
-    }
+    	cq.exec(callback);
+	}
   	tq.exec(callback);
-    cq.exec(callback);
   }
   // this database function loads a packet model based on a descriptor typeid. if the model
   // for the typeid is cached, that model is passed to the callback. otherwise, the above 
@@ -287,8 +287,8 @@ module.exports = function(ks){
 								h: headerliteral,
 								p: payloadliteral
 							} );
-							newSchema.virtual('h.t').get(function(){ return parseInt(this._t.split('_')[1]); });
-							newSchema.index({ '_t': 1, 'h.s': -1, 'h.mid':1}, { unique: true });
+							//newSchema.virtual('h.t').get(function(){ return parseInt(this._t.split('_')[1]); });
+							newSchema.index({ 'h.\'TAP ID\'': 1, 'h.\'Sequence Number\'': -1, 'h.mid':1}, { unique: true });
 							
 							db.model(descriptor.missionId[m].missionId  + '-' + descriptor.ID, newSchema);
 							utils.logText(descriptor.missionId[m].missionId  + '-' + descriptor.ID + ' ' + descriptor.name, 'LOAD'.cyan);
