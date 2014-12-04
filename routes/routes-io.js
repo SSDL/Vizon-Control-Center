@@ -147,24 +147,25 @@ module.exports = function(app){
   
   function recordTAP(tap, socket) {
    console.log(tap) 
-   db.funcs.loadPacketModel(tap.h.mid + '-' + 'TAP_'+tap.h['TAP ID'], function(tapmodel){
+   console.log(tap.h.t);
+   db.funcs.loadPacketModel(tap.h.mid + "-TAP_" + tap.h["TAP ID"], function(tapmodel){
       if(tapmodel) {
 	  tapmodel.create(tap , function (err, newtap) {
 	  console.log(err);
           if (err && err.code == 11000) { // duplicate key error
-            createConfirmation(tap, 'TAP_' + tap.h.t + ' already logged'.red, socket);
+            createConfirmation(tap, tap.h.t + ' already logged'.red, socket);
           } else if(err) {
-            createConfirmation(tap, 'TAP_' + tap.h.t + ' not saved - db error'.red, socket);
+            createConfirmation(tap, tap.h.t + ' not saved - db error'.red, socket);
             utils.log(err);
           } else {
-            createConfirmation(tap, newtap._t + ' logged'.green, socket);
+            createConfirmation(tap, newtap.h.t + ' logged'.green, socket);
             // Where does this line go?
-            app.listener.io.of('/web').in(tap.h.mid).emit('new-tap', newtap._t);
+            app.listener.of('/web').in(tap.h.mid).emit('new-tap', newtap._t);
             findCAPs(newtap, socket);
           }
         });
       } else {
-        createConfirmation(socket.accesslog.gsid, tap, 'TAP_' + tap.h.t + ' unknown'.red, socket);
+        createConfirmation(socket.accesslog.gsid, tap, tap.h.t + ' unknown'.red, socket);
       }
     });
   }

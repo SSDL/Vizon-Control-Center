@@ -202,51 +202,6 @@ module.exports = function(ks){
   // slightly differently in terms of schema literal generation for each field descriptor,
   // but both consist of the same general schema structure extended from the base TAP/CAP
   // schemas above. the final models are cached for future use.
-  db.funcs.loadPacketModel2 = function(desc_typeid, callback) {
-    if(db.models[desc_typeid]) callback(db.model(desc_typeid)) // if the descriptor typeid is already in the cache, use it
-    else {
-      db.funcs.loadPacketDescriptors(desc_typeid, function (err, descriptors) { // fetch regex-matched descriptors from the database
-        if (err) {
-          utils.log(err);
-        }
-        else {
-          for(var k in descriptors) { // for each retrieved descriptor, even if 1
-            var descriptor = descriptors[k].toObject(); // call toObject to only get "descriptor elements", not the extra Mongoose stuff
-            console.log(descriptor);
-            console.log(hello);
-            var isTAP = /^TAP_.*/.test(descriptor._id);
-            var isCAP = /^CAP_.*/.test(descriptor._id);
-            var headerliteral = { mid: { type: Number } }
-            var payloadliteral = {}
-            var namesliteral = {}
-            for(var prop in descriptor.h) {
-              if(descriptor.h[prop].f == 't') continue;
-              if(descriptor.h[prop].f && isTAP) // if the property is an object with a fieldname property of its own
-                headerliteral[descriptor.h[prop].f] = setupTAPSchemaLiteral(descriptor.h[prop]);
-              else if(descriptor.h[prop].f && isCAP)
-                headerliteral[descriptor.h[prop].f] = setupCAPSchemaLiteral(descriptor.h[prop]);
-            }
-            for(var prop in descriptor.p) {
-              if (descriptor.p[prop].f && isTAP) // if the property is an object with a fieldname property of its own
-                payloadliteral[descriptor.p[prop].f] = setupTAPSchemaLiteral(descriptor.p[prop]);
-              else if (descriptor.p[prop].f && isCAP)
-                payloadliteral[descriptor.p[prop].f] = setupCAPSchemaLiteral(descriptor.p[prop]);
-            }
-            var newSchema = db.schemas[ descriptor._id.split('_')[0] ].extend( { // extend the descriptor base type (TAP, CAP, etc)
-              h: headerliteral,
-              p: payloadliteral
-            } );
-            newSchema.virtual('h.t').get(function(){ return parseInt(this._t.split('_')[1]); });
-            newSchema.index({ '_t': 1, 'h.s': -1, 'h.mid':1}, { unique: true });
-            db.model(descriptor._id, newSchema);
-            
-            utils.logText(descriptor._id + ' ' + descriptor.n, 'LOAD'.cyan);
-          }
-          if(callback) callback(db.model(desc_typeid)); // return the model if available, otherwise will be undefined so make sure it's handled in callback
-        }
-      });
-    }
-  }
  
  	db.funcs.loadPacketModel = function(desc_typeid, callback) {
     if(db.models[desc_typeid]) callback(db.model(desc_typeid)) // if the descriptor typeid is already in the cache, use it
@@ -287,8 +242,10 @@ module.exports = function(ks){
 								h: headerliteral,
 								p: payloadliteral
 							} );
-							//newSchema.virtual('h.t').get(function(){ return parseInt(this._t.split('_')[1]); });
-							newSchema.index({ 'h.\'TAP ID\'': 1, 'h.\'Sequence Number\'': -1, 'h.mid':1}, { unique: true });
+
+	newSchema.virtual('h.t').get(function(){ return this._t; });
+	newSchema.virtual('h.s').get(function(){return this.h["Sequence Number"]});
+	newSchema.index({ '_t': 1, 'h.s': -1 }, { unique: true });
 							
 							db.model(descriptor.missionId[m].missionId  + '-' + descriptor.ID, newSchema);
 							utils.logText(descriptor.missionId[m].missionId  + '-' + descriptor.ID + ' ' + descriptor.name, 'LOAD'.cyan);
