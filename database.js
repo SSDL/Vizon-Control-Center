@@ -183,9 +183,11 @@ module.exports = function(ks){
   }
   db.funcs.loadPacketDescriptors2 = function(desc_typeid, callback){
     var regex = /.+_\d+/; // match all xxx_###
+    
     if(typeof desc_typeid === 'function') callback = desc_typeid
     else if(desc_typeid) {
     	var tapid = desc_typeid.split('-')[1];
+    	//console.log("model", tapid, desc_typeid)
 	regex = new RegExp('^'+ tapid + '$') // matches the descriptor typeid specified	
 	var tq = ks.list(tapid.split('_')[0]).model.where('ID').regex(regex).sort('ID').populate('missionId', null, {missionId: desc_typeid.split('-')[0]} );
     } else {
