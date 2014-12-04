@@ -35,6 +35,7 @@ var routes = {
 // Setup Route Bindings
 exports = module.exports = function(app) {
   console.log("Test 2");
+  console.log("test 3");
   // Views
   app.get('/', routes.views.index);
   app.get('/blog/:category?', routes.views.blog);
