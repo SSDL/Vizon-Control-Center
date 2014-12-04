@@ -10,14 +10,24 @@ exports = module.exports = function(req, res) {
 	locals.section = 'Missions';
 
 	var mission_slug = req.params.mission;
-	Mission.findOne({slug : mission_slug}).exec(function(err, mission) {
+	Mission.findOne({
+		slug : mission_slug
+	}).exec(function(err, mission) {
 		if (err || !mission) {
 			console.error(err);
 			res.redirect('errors/404');
-			next(err);
+			// next(err);
 			return;
 		}
-		//view.query('TAPS', keystone.list('TAPS').model.find().sort('name').limit(3));
+		// .where('missionId').equals(mission.missionId).sort('ID')
+		view.query('CAPS', keystone.list('CAP').model.find().populate({
+			path : 'missionId',
+			//match: { missionId: { $gte: 317 }}
+		}));
+		view.query('TAPS', keystone.list('TAP').model.find().populate({
+			path : 'missionId',
+			//match: { missionId: { $eq: 318 }}
+		}));
 		view.render('view_mission', {
 			mission : mission
 		});

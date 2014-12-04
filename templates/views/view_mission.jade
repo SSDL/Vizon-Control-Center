@@ -6,4 +6,19 @@ block content
 		hr
 		h1.text-center.header #{mission.name}
 		hr
+		if CAPS
+			p #{CAPS.length}
+		if TAPS
+			p #{TAPS.length}
+		
+		if CAPS
+			for CAP in CAPS 
+				h2 #{CAP.ID}
+				p #{CAP.missionId}
 
+		if TAPS
+			for TAP in TAPS 
+				h2 #{TAP.ID}
+				p #{TAP.missionId} 
+				for field in TAP
+					p #{field}
