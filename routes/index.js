@@ -41,6 +41,8 @@ exports = module.exports = function(app) {
 
 	app.get('/space', routes.views.space);
 	app.get('/graph', middleware.requireUser, routes.views.graph);
+	app.get('/viz', middleware.requireUser, routes.views.graph);
+
 	app.get('/mission', middleware.requireUser, routes.views.missions);
 	app.get('/missions', middleware.requireUser, routes.views.missions);
 
