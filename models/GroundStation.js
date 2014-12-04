@@ -14,7 +14,7 @@ var GroundStation = new keystone.List('GroundStation', {
 
 GroundStation.add({
 	groundStationId: { type: String, required: true, initial: true},
-	title: { type: String, required: true},
+	name: { type: String},
 	key: { type: String },
 	isActive: { type: Boolean },
 	AuthorizedUsers: { type: Types.Relationship, ref: 'User', index: true, many: true},

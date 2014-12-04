@@ -17,8 +17,7 @@ Mission.add({
 	name: { type: String, required: false },
 	authorizedUsers: { type: Types.Relationship, ref: 'User', index: true, many: true},
 	TAPHeader: {type: Types.TextArray},
-	CAPHeader: {type: Types.TextArray}
-	createdAt: { type: Date, default: Date.now },
+	CAPHeader: {type: Types.TextArray},
 });
 
 Mission.relationship({ path: 'taps', ref: 'TAP', refPath: 'missionId'});
