@@ -7,12 +7,14 @@ var keystone = require('keystone'),
  */
 
 var GroundStation = new keystone.List('GroundStation', {
-	map: { name: 'title' },
-	autokey: { path: 'slug', from: 'title', unique: true }
+	track: true,
+	map: { name: 'groundStationId' },
+	autokey: { path: 'slug', from: 'groundStationId', unique: true }
 });
 
 GroundStation.add({
-	title: { type: String, required: true},
+	groundStationId: { type: String, required: true, initial: true},
+	name: { type: String},
 	key: { type: String },
 	isActive: { type: Boolean },
 	AuthorizedUsers: { type: Types.Relationship, ref: 'User', index: true, many: true},

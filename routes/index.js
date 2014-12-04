@@ -45,10 +45,15 @@ exports = module.exports = function(app) {
   app.get('/graph', middleware.requireUser, routes.views.graph);
   app.get('/mission', middleware.requireUser, routes.views.missions);
   app.get('/missions', middleware.requireUser, routes.views.missions);
+  
+  app.get('/gs', middleware.requireUser, routes.views.ground_stations);
+  app.get('/ground-stations', middleware.requireUser, routes.views.ground_stations);
+
   app.all('/download', middleware.requireUser, routes.views.download);
   app.get('/about', routes.views.about);
 
   app.get('/mission/:mission',routes.views.view_mission);
+  app.get('/gs/:ground_station',routes.views.view_ground_station);
 
   app.all('/signup', routes.views.session.signup);
   app.all('/signin', routes.views.session.signin);
