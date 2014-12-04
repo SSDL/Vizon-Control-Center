@@ -75,23 +75,27 @@ module.exports = function(ks){
       var literal = {v: val}
       if(desc[0]) literal.n = desc[0];
       //if(desc_prop.u) literal.u = desc_prop.u;
-      if(desc.length > 3) { // verify that the property conv is an array
+      if (desc.length > 2) {
+	if(desc.length > 3) { // verify that the property conv is an array
         literal.v = Number(desc[2]); // the first element of conv is the linear shift
         for(var i = 3; i < desc.length; i++) { // for the rest of the elements in conv
           literal.v += Number(desc[i]) * Math.pow(val, i) // determine the power and constant
         }
-      } else if(desc[2] == 'hex') { // hex string
+      } else if(desc[2].trim() == 'hex') { // hex string
         literal.v = '0x' + literal.v;
-      } else if(desc[2] == 'snap') { // SNAP time
+      } else if(desc[2].trim() == 'snap') { // SNAP time
         literal.v = new Date((literal.v * 1000) + (new Date('Jan 1, 2000')).getTime());
       }
+   } 
       return literal;
     }
     //console.log(desc_prop);
     var propertyliteral = { type: Number, get: getValueProperty }; // create new schema property literal for plain number
-    if(desc[2] == 'string' || desc[2] == 'hex') // hex string or regular string
-      propertyliteral.type = String;
-    return propertyliteral;
+    if (desc.length > 2) {
+	if(desc[2].trim() == 'string' || desc[2].trim() == 'hex') // hex string or regular string
+        propertyliteral.type = String;
+    }  
+	return propertyliteral;
   }
   
   // this function dynamically crates the literal for a given CAP descriptor property.
@@ -101,10 +105,11 @@ module.exports = function(ks){
   function setupCAPSchemaLiteral(desc_prop) {
   	var desc = desc_prop.split(',');
     var propertyliteral = { type: Number }; // create new schema property literal for plain number
-    if(desc[2] == 'snap') {// snap time
+    if (desc.length >2 ) {
+    if(desc[2].trim() == 'snap') {// snap time
       propertyliteral.get = function(val) {
         var output = val;
-        if((val == 0) && (desc[3] == 'snapnow')) {// secondary conversion type
+        if((val == 0) && (desc[3].trim() == 'snapnow')) {// secondary conversion type
           output = Math.floor(((new Date()).getTime() - (new Date('Jan 1, 2000')).getTime())/1000);
         }
         else if(val == 0)
@@ -112,6 +117,7 @@ module.exports = function(ks){
         return output;
       };
     }
+}	
     return propertyliteral;
   }
   
@@ -171,6 +177,7 @@ module.exports = function(ks){
   db.model('CAPlog', db.schemas.CAP);
   
   
+
   // this database function returns the descriptor for a given packet descriptor typeid.
   // if the descriptor is not cached, it is retrieved from the database and passed to a
   // callback. if no descriptor typeid is provided, the default regex match will retrieve

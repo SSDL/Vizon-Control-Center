@@ -28,7 +28,8 @@ $(function () {
 	});
 	
 	socket.on('querytimedata', function(data) {
-	  data.series.sort(function(a, b) { 
+	console.log(data);  
+	data.series.sort(function(a, b) { 
     	return a[0] > b[0] ? 1 : -1;
  	  });
 	  chart1.addSeries({
