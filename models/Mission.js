@@ -7,16 +7,18 @@ var keystone = require('keystone'),
  */
 
 var Mission = new keystone.List('Mission', {
+	track: true,
 	map: { name: 'missionId' },
 	autokey: { path: 'slug', from: 'missionId', unique: true }
 });
 
 Mission.add({
-	title: { type: String, required: false },
-	missionId: { type: String, required: true },
+	missionId: { type: String, required: true, initial: true},
+	name: { type: String, required: false },
 	authorizedUsers: { type: Types.Relationship, ref: 'User', index: true, many: true},
 	TAPHeader: {type: Types.TextArray},
 	CAPHeader: {type: Types.TextArray}
+	createdAt: { type: Date, default: Date.now },
 });
 
 Mission.relationship({ path: 'taps', ref: 'TAP', refPath: 'missionId'});
@@ -27,5 +29,5 @@ Mission.schema.methods.taps = function(cb){
     .exec(cb);
 };
 
-Mission.defaultColumns = 'missionId, title';
+Mission.defaultColumns = 'missionId|20%, name|20%, authorizedUsers';
 Mission.register();

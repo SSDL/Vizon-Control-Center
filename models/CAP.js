@@ -7,6 +7,7 @@ var keystone = require('keystone'),
  */
 
 var CAP = new keystone.List('CAP', {
+	track: true,
 	map: { name: 'ID' },
 	autokey: { path: 'slug', from: 'ID missionId ', unique: true }
 });

@@ -8,7 +8,7 @@
 pushd `dirname $0` >/dev/null
 
 BACKUP_REMOTE_USER="ec2-user"
-BACKUP_REMOTE_HOST="vizon.us"        # TODO(ian): change me!
+BACKUP_REMOTE_HOST="vizon.us"        # TODO: change me!
 BACKUP_REMOTE_DEST="~/backup/automated/."
 
 NOW=`date +%s`
