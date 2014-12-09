@@ -47,8 +47,8 @@ module.exports = function(app){
       	var series = [];
       	log.forEach( function(tap) {
       		// Change the .v thing.  Obsolete now.
-      		console.log(tap);
 	        var ts = (new Date(tap.h.Timestamp.v).getTime());
+      		
       		series.push([ts, tap.p[tapinfo[1]].v]);
       	});
       	data.name = tapinfo[1];

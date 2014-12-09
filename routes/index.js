@@ -18,10 +18,8 @@
  * http://expressjs.com/api.html#app.VERB
  */
 
-var _ = require('underscore'),
-  keystone = require('keystone'),
-  middleware = require('./middleware'),
-  importRoutes = keystone.importer(__dirname);
+var _ = require('underscore'), keystone = require('keystone'), middleware = require('./middleware'), importRoutes = keystone
+		.importer(__dirname);
 
 // Common Middleware
 keystone.pre('routes', middleware.initLocals);
@@ -29,40 +27,42 @@ keystone.pre('render', middleware.flashMessages);
 
 // Import Route Controllers
 var routes = {
-  views: importRoutes('./views')
+	views : importRoutes('./views')
 };
 
 // Setup Route Bindings
 exports = module.exports = function(app) {
 
-  // Views
-  app.get('/', routes.views.index);
-  app.get('/blog/:category?', routes.views.blog);
-  app.get('/blog/post/:post', routes.views.post);
-  app.all('/contact', routes.views.contact);
+	// Views
+	app.get('/', routes.views.index);
+	app.get('/blog/:category?', routes.views.blog);
+	app.get('/blog/post/:post', routes.views.post);
+	app.all('/contact', routes.views.contact);
 
-  app.get('/space', routes.views.space);
-  app.get('/graph', middleware.requireUser, routes.views.graph);
-  app.get('/mission', middleware.requireUser, routes.views.missions);
-  app.get('/missions', middleware.requireUser, routes.views.missions);
-  
-  app.get('/gs', middleware.requireUser, routes.views.ground_stations);
-  app.get('/ground-stations', middleware.requireUser, routes.views.ground_stations);
+	app.get('/space', routes.views.space);
+	app.get('/graph', middleware.requireUser, routes.views.graph);
+	app.get('/viz', middleware.requireUser, routes.views.graph);
 
-  app.all('/download', middleware.requireUser, routes.views.download);
-  app.get('/about', routes.views.about);
+	app.get('/mission', middleware.requireUser, routes.views.missions);
+	app.get('/missions', middleware.requireUser, routes.views.missions);
 
-  app.get('/mission/:mission',routes.views.view_mission);
-  app.get('/gs/:ground_station',routes.views.view_ground_station);
+	app.get('/gs', middleware.requireUser, routes.views.ground_stations);
+	app.get('/ground-stations', middleware.requireUser,
+			routes.views.ground_stations);
 
-  app.all('/signup', routes.views.session.signup);
-  app.all('/signin', routes.views.session.signin);
-  app.all('/forgot-password', routes.views.session['forgot-password']);
-  app.all('/reset-password/:key', routes.views.session['reset-password']);
-  app.get('/signout', routes.views.session.signout);
+	app.all('/download', middleware.requireUser, routes.views.download);
+	app.get('/about', routes.views.about);
 
+	app.get('/mission/:mission', routes.views.view_mission);
+	app.get('/gs/:ground_station', routes.views.view_ground_station);
 
-  // NOTE: To protect a route so that only admins can see it, use the requireUser middleware:
-  // app.get('/protected', middleware.requireUser, routes.views.protected);
+	app.all('/signup', routes.views.session.signup);
+	app.all('/signin', routes.views.session.signin);
+	app.all('/forgot-password', routes.views.session['forgot-password']);
+	app.all('/reset-password/:key', routes.views.session['reset-password']);
+	app.get('/signout', routes.views.session.signout);
+
+	// NOTE: To protect a route so that only admins can see it, use the requireUser middleware:
+	// app.get('/protected', middleware.requireUser, routes.views.protected);
 
 };

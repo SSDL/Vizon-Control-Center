@@ -56,14 +56,20 @@ html
 						a.navbar-brand(href='/') Vizon
 					.collapse.navbar-collapse
 						ul.nav.navbar-nav.navbar-right
-							each link in navLinks
-								li(class=(section == link.key ? 'active' : null)): a(href=link.href)= link.label
+							li: a(href='/about') About
+							li: a(href='/contact') Contact
+							//each link in navLinks
+							//	li(class=(section == link.key ? 'active' : null)): a(href=link.href)= link.label
 							if user
+								li: a(href='/mission') Missions
+								li: a(href='/gs') Ground Stations
+								li: a(href='/viz') Data
+								li: a(href='/space') Space
 								if user.canAccessKeystone
 									li: a(href='/keystone') Open Admin
 								li: a(href='/signout') Sign Out
 							else
-								li: a(href='/signup', data-from=page.path, data-initial='signup').js-auth-trigger Sign up
+								li: a(href='/signup', data-from=page.path, data-initial='signup').js-auth-trigger Request Access
 								li: a(href='/signin', data-from=page.path, data-initial='signin').js-auth-trigger Sign in
 		//- BODY
 		#body
@@ -88,37 +94,18 @@ html
 
 		//- FOOTER
 		.site-footer: .container
-			- if(currentUrl === '/')
-				.row
-					.col-sm-3.hidden-xs
-						h4.footer-heading QUESTIONS?
-						ul
-							li: a(href='/contact') Contact Us
-					.col-xs-4.col-sm-3
-						h4.footer-heading LEARN MORE
-						ul
-							li: a(href='/faq') FAQ's
-							li: a(href='/privacy') Privacy
-							li: a(href='/tos') Terms of Service
-					.col-xs-4.col-sm-3
-						h4.footer-heading ABOUT
-						ul
-							li: a(href='/about') About
-				.footer-copyright
+			.row
+				.col-sm-4
 					p &copy;2014 Stanford University.  All Rights Reserved
-			- else
-				.row
-					.col-sm-3
-						p &copy;2014 Stanford University.  All Rights Reserved
-					.col-xs-1
-						a(href='/about') About
-					.col-xs-1
-						a(href='/contact') Contact	
-					.col-xs-1
-						a(href='/tos') Terms
-					.col-xs-1
-						a(href='/privacy') Privacy
-					.col-xs-1
+				.col-xs-1
+					a(href='/about') About
+				.col-xs-1
+					a(href='/contact') Contact	
+				.col-xs-1
+					a(href='/tos') Terms
+				.col-xs-1
+					a(href='/privacy') Privacy
+				.col-xs-1
 
 		block modal
 		if !user
