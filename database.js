@@ -261,6 +261,7 @@ module.exports = function(ks){
 							utils.logText(descriptor.missionId[m].missionId  + '-' + descriptor.ID + ' ' + descriptor.name, 'LOAD'.cyan);
 						}
           }
+          console.log("hello");
           if(callback) callback(db.model(desc_typeid)); // return the model if available, otherwise will be undefined so make sure it's handled in callback
         }
       });
