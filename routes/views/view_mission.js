@@ -95,7 +95,6 @@ exports.tap = function(req, res){
   if(req.params.t === 'all') {
     req.app.db.models.TAP.distinct( '_t', { 'h.mid': parseInt(req.params.mid) } ).sort( { '_t': 1 } ).exec( function(err, taps) {
       async.map(taps, function(tap, callback){
-      	console.log(tap);
         keystone.list('TAP').model.findOne( { 'h.mid': parseInt(req.params.mid), '_t': tap } ).sort( { '_t': -1 } ).exec( function(err, doc) {
           callback(null, doc);
         });
@@ -106,18 +105,13 @@ exports.tap = function(req, res){
     console.log(req.params);
     //console.log(keystone.db.models);
     console.log(req.params.mid + '-TAP_' + req.params.t);
-    //console.log(keystone.db.models[req.params.mid + '-TAP_' + req.params.t]);
-    console.log("break1");
-    //console.log(keystone.db.models);
-    console.log("break2");
     keystone.db.models[req.params.mid + '-TAP_' + req.params.t].findOne({}).sort({'h.s':-1}).exec(function(err,doc) {// { 'h.mid': req.params.mid } ).sort( { 'h.s': -1 } ).exec( function(err, doc) {
         console.log("hello");
         console.log(doc);
         console.log("hello2");
       });
-    async.map(req.params, function(tap, callback){
-    	console.log("hello");
-      keystone.db.models[req.params.mid + '-TAP_' + req.params.t].findOne({}).sort( { 'h.s': -1 } ).exec( function(err, doc) {
+    async.map(taplist, function(tap, callback){
+      keystone.db.models[req.params.mid + '-TAP_' + tap].findOne({}).sort( { 'h.s': -1 } ).exec( function(err, doc) {
         callback(null, doc);
       });
     }, tapFinally);
