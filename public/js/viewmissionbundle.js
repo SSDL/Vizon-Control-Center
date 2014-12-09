@@ -5,6 +5,7 @@
 
 $(function() {
   var EventEmitter = require('events').EventEmitter;
+  //var moment = require('moment');
   //var _ = require('underscore');
   //var app = require('keystone');
   //var Backbone = require('backbone');
@@ -105,6 +106,7 @@ $(function() {
       _.extend(attrs,this.cap_desc);
       this.$el.html(this.template( attrs ));
       var picker = $('.datetimepicker',this.$el);
+      console.log(picker);
       picker.datetimepicker({
         format: 'yyyy-mm-ddThh:ii:ss', // datepicker format found at http://www.malot.fr/bootstrap-datetimepicker/
         autoclose: 1,
@@ -158,15 +160,20 @@ $(function() {
     send: function() {
       var _this = this;
       var val = '';
+      console.log(this);
       var cap = { h: {}, p: {}};
-      _.each(this.cap_desc.p, function(elem) {
-        var field =  _this.$el.find('[name="'+elem.f+'"]');
-        if(field.size()) { val = field.val(); }
-        if(val === '') { val = 0; }
-        if(field.data('isdate')) { cap.p[elem.f] = (new Date(val)).valueOf()/1000; }
-        else { cap.p[elem.f] = parseInt(val); }
+      _.each(this.cap_desc.package, function(elem) {
+      	var f = elem.split(',')[0];
+        if ( f !== "") {
+					var field =  _this.$el.find('[name="'+ f +'"]');
+					if(field.size()) { val = field.val(); }
+					if(val === '') { val = 0; }
+					if(field.data('isdate')) { cap.p[f] = (new Date(val)).valueOf()/1000; }
+					else { cap.p[f] = parseInt(val); }
+				}
       });
-      cap.h.t = parseInt(this.cap_desc._id.split('_')[1]);
+      console.log(this)
+      cap.h.t = this.cap_desc.ID.split('_')[1];
       var field =  _this.$el.find('[name="xt"]');
       val = (field.val() === '' ? moment() : moment(field.val())); // moment format not used but found at http://momentjs.com/docs/#/parsing/string-format/
       if(!val.isValid()) { val = moment(field.val()); }
@@ -193,10 +200,14 @@ $(function() {
       $('#cap_selector').prop('selectedIndex',-1);
     },
     render: function() {
+    	console.log(this);
       this.$el.html( this.template({ cap_descs: this.collection.models }));
     },
     show: function() {
-      $('#cap').empty().append(this.views[$('#cap_selector').prop('selectedIndex')].render().el);
+    	console.log(this.views[1]);
+    	console.log(this.views);
+    	console.log(this.views[0]);
+      $('#cap').empty().append(this.views[$('#cap_selector').prop('selectedIndex')-1].render().el);
     }
   });
 
@@ -204,7 +215,6 @@ $(function() {
     el: ('.page .container'),
     initialize: function() {
       app.mainView = this;
-      console.log(this);
       this.model = new app.MissionData( JSON.parse( unescape($('#data-mission').html()) ) );
       if(this.model.get('tap_descs').TAP_1) { app.beaconView = new app.TAPView({el: '#beacon', model: new app.TAP({tap: {}, tapId: 1})}); }
       if(this.model.get('tap_descs').TAP_2) { app.bustelemView = new app.TAPView({el: '#cmdecho', model: new app.TAP({tap: {}, tapId: 2})}); }
@@ -216,10 +226,7 @@ $(function() {
   });
 
   $(document).ready(function() {
-  	console.log(app);
-  	
     app.mainView = new app.MainView();
-    console.log(app);
     app.headerView = new app.HeaderView();
     app.capCollectionView = new app.CAPCollectionView();
 		});

@@ -16,9 +16,12 @@ block head
 
 block js
   script(src='/js/lib/jquery/jquery-1.11.0.min.js')
+  script(src='/js/lib/bootstrap/bootstrap-3.1.0.min.js')
+  script(src='/js/lib/bootstrap-datetimepicker/js/bootstrap-datetimepicker.min.js')
   script(src='/js/underscore/underscore.js')
   script(src='/js/backbone/backbone.js')
   script(src='/js/events/events.js')
+  script(src='/js/moment/moment.js')
   script(src='/js/viewmissionbundle.js')
   script(src='/socket.io/socket.io.js')
 
@@ -61,8 +64,8 @@ block content
         label.control-label <%= moment(tap.d).calendar() %>
         div.input-group
           <% if(tap && tap.h) { %>
-          div <%= tap.h.ts.n %>: <%= tap.h.ts.v %>
-          div <%= tap.h.s.n %>: <%= tap.h.s.v %>
+          div <%= tap.h.Timestamp.n %>: <%= tap.h.Timestamp.v %>
+          div <%= tap.h["Sequence Number"].n %>: <%= tap.h.s %>
           <% _.each(tap.p, function(elem) { %>
           div
             <%= elem.n %>: <%= elem.v %>
@@ -74,7 +77,7 @@ block content
 
   script(type='text/template', id='tmpl-tap-dropdown')
     <% _.each(tap_descs, function(tap_desc) { %>
-    option(value!='<%= tap_desc._id.split("_")[1] %>') <%= tap_desc._id.replace('_',' ') %> - <%= tap_desc.n %>
+    option(value!='<%= tap_desc.ID.split("_")[1] %>') <%= tap_desc.ID.replace('_',' ') %> - <%= tap_desc.name %>
     <% }); %>
 
   script(type='text/template', id='tmpl-cap-dropdown')
@@ -113,34 +116,35 @@ block content
 
   script(type='text/template', id='tmpl-cap')
     fieldset
-      //legend <%= n %>
-      <% var elems = p.slice(0); _.each(h, function(h_elem) { if(h_elem.f == 'xt') elems.splice(0,0,h_elem) }); _.each(elems, function(elem) { %>
+      // legend <%= name %>
+      <% var elems = package.slice(0); _.each(header, function(h_elem) { if(h_elem.split(',')[0] == 'Execution Time') elems.splice(0,0,h_elem) }); _.each(elems, function(elem) { %>
       div.control-group
-        label.control-label <%= elem.n %>
-        <% if(elem.o && elem.o == 'TAPS') { %>
-        select.form-control(name!='<%= elem.f %>')
+        <% var f = elem.split(',')[0]; var o = elem.split(',')[4]; var h = elem.split(',')[5]; %>
+        label.control-label <%= f %>
+        <% if( o && o.trim() == 'TAPS') { %>
+        select.form-control(name!='<%= f %>')
           <%= tap_opts_template({tap_descs: tap_descs}) %>
-        <% } else if(elem.o && elem.o == 'CLOCK') { %>
+        <% } else if(o && o.trim() == 'CLOCK') { %>
         div.input-group.date.datetimepicker
-          input.form-control(type='text', name!='<%= elem.f %>', value='', placeholder!='<%= (elem.h ? elem.h : elem.n) %>', data-isdate='true')
+          input.form-control(type='text', name!='<%= f %>', value='', placeholder!='<%= (h ? h : f) %>', data-isdate='true')
           span.input-group-addon
             span.glyphicon.glyphicon-remove
           span.input-group-addon.pickerbutton
             span.glyphicon.glyphicon-calendar
             span &nbsp;
             span.glyphicon.glyphicon-time
-        <% } else if(elem.o && elem.o.INTERVAL) { %>
+        <% } else if(o && o.trim() == 'INTERVAL') { %>
         div.input-group
-          input.form-control.interval(type='text', name!='<%= elem.f %>', placeholder!='<%= (elem.h ? elem.h : elem.n) %>')
+          input.form-control.interval(type='text', name!='<%= f %>', placeholder!='<%= (h ? h : f) %>')
           span.input-group-addon
-            span.output <%= elem.o.INTERVAL.zero %>
-        <% } else if(elem.o && elem.o instanceof Array) { %>
-        select.form-control(name!='<%= elem.f %>')
-          <% _.each(elem.o, function(opt) { %>
-          option(value!='<%= opt.v %>') <%= opt.v %> - <%= opt.n %>
+            span.output <%= 'never' %>
+        <% } else if(o && o.trim()[0] == '[') { %>
+        select.form-control(name!='<%= f %>')
+          <% var onew = o.trim().slice(1, o.trim().length-1).trim(); _.each(onew.split(' '), function(opt) { opt = opt.split(':');%>
+          option(value!='<%= parseInt(opt[1]) %>') <%= opt[1] %> - <%= opt[0] %>
           <% }); %>
-        <% } else { %>
-        input.form-control(type='text', name!='<%= elem.f %>', placeholder!='<%= (elem.h ? elem.h : elem.n) %>')
+        <% } else if ( elem !== "" ){ %>
+        input.form-control(type='text', name!='<%= f %>', placeholder!='<%= (h ? h : f) %>')
         <% } %>
         span.help-block
       <% }); %>
