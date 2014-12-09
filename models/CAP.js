@@ -15,7 +15,7 @@ var CAP = new keystone.List('CAP', {
 CAP.add({
 	ID: { type: String, required: true },
 	missionId: { type: Types.Relationship, ref: 'Mission', index: true, many: true, initial: true , required: true},
-	name: { type: String },
+	name: { type: String, initial : true },
 	length: { type: Number, required: true, initial: true },
 	package: {type: Types.TextArray, initial: true}
 });

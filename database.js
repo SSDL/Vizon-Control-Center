@@ -101,10 +101,10 @@ module.exports = function(ks){
   function setupCAPSchemaLiteral(desc_prop) {
   	var desc = desc_prop.split(',');
     var propertyliteral = { type: Number }; // create new schema property literal for plain number
-    if(desc[2] == 'snap') {// snap time
+    if( desc[2] && desc[2].trim() == 'snap') {// snap time
       propertyliteral.get = function(val) {
         var output = val;
-        if((val == 0) && (desc[3] == 'snapnow')) {// secondary conversion type
+        if((val == 0) && ( desc[3] && (desc[3].trim() == 'snapnow'))) {// secondary conversion type
           output = Math.floor(((new Date()).getTime() - (new Date('Jan 1, 2000')).getTime())/1000);
         }
         else if(val == 0)
@@ -178,7 +178,7 @@ module.exports = function(ks){
   db.funcs.loadPacketDescriptors = function(desc_typeid, callback){
     var regex = /.+_\d+/; // match all xxx_###
     if(typeof desc_typeid === 'function') callback = desc_typeid
-    else if(desc_typeid) regex = new RegExp('^'+desc_typeid + '$') // matches the descriptor typeid specified
+    else if(desc_typeid) regex = new RegExp('^' + desc_typeid + '$') // matches the descriptor typeid specified
     db.models.Descriptor.where('_id').regex(regex).sort('_id').exec(callback);
   }
   db.funcs.loadPacketDescriptors2 = function(desc_typeid, callback){
@@ -188,7 +188,7 @@ module.exports = function(ks){
     else if(desc_typeid) {
     	var tapid = desc_typeid.split('-')[1];
     	//console.log("model", tapid, desc_typeid)
-	regex = new RegExp('^'+ tapid + '$') // matches the descriptor typeid specified	
+	regex = new RegExp('^' + tapid + '$') // matches the descriptor typeid specified	
 	var tq = ks.list(tapid.split('_')[0]).model.where('ID').regex(regex).sort('ID').populate('missionId', null, {missionId: desc_typeid.split('-')[0]} );
     } else {
     	var tq = ks.list('TAP').model.where('ID').regex(regex).sort('ID').populate('missionId');
@@ -213,6 +213,7 @@ module.exports = function(ks){
           utils.log(err);
         }
         else {
+        	console.log(descriptors);
           for(var k in descriptors) { // for each retrieved descriptor, even if 1
             var descriptor = descriptors[k].toObject(); // call toObject to only get "descriptor elements", not the extra Mongoose stuff
 						//console.log(m);
@@ -231,24 +232,26 @@ module.exports = function(ks){
 							for(var prop in header) {
 								if(header[prop].split(',')[0] == 'TAP ID') continue;
 								else if(header[prop].split(',')[0] == 'CAP ID') continue;
-								if(header[prop].split(',')[0]) // if the property is an object with a fieldname property of its own
+								if(header[prop].split(',')[0] && isTAP) // if the property is an object with a fieldname property of its own
 									headerliteral[header[prop].split(',')[0]] = setupTAPSchemaLiteral2(header[prop]);
+								else if ( header[prop].split(',')[0] && isCAP) 
+									headerliteral[header[prop].split(',')[0]] = setupCAPSchemaLiteral(header[prop]);
 							}
 							for(var prop in descriptor.package) {
 								if (descriptor.package[prop].split(',')[0] && isTAP) // if the property is an object with a fieldname property of its own
 									payloadliteral[descriptor.package[prop].split(',')[0]] = setupTAPSchemaLiteral2(descriptor.package[prop]);
 								else if (descriptor.package[prop].split(',')[0] && isCAP)
-									payloadliteral[descriptor.package[prop].split(',')[0]] = setupCAPSchemaLiteral2(descriptor.package[prop]);
+									payloadliteral[descriptor.package[prop].split(',')[0]] = setupCAPSchemaLiteral(descriptor.package[prop]);
 							}
 							var newSchema = db.schemas[ (descriptor.ID.split('_')[0]) ].extend( { // extend the descriptor base type (TAP, CAP, etc)
 								h: headerliteral,
 								p: payloadliteral
 							} );
 
-	newSchema.virtual('h.t').get(function(){ return this._t; });
-	newSchema.virtual('h.s').get(function(){return parseInt(this.h["Sequence Number"].v)});
-	newSchema.index({ '_t': 1, 'h.s': -1 }, { unique: true });
-							
+							newSchema.virtual('h.t').get(function(){ return this._t; });
+							newSchema.virtual('h.s').get(function(){return parseInt(this.h["Sequence Number"])});
+							newSchema.index({ '_t': 1, 'h.s': -1 }, { unique: true });
+													
 							db.model(descriptor.missionId[m].missionId  + '-' + descriptor.ID, newSchema);
 							utils.logText(descriptor.missionId[m].missionId  + '-' + descriptor.ID + ' ' + descriptor.name, 'LOAD'.cyan);
 						}

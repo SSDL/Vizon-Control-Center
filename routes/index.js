@@ -53,9 +53,9 @@ exports = module.exports = function(app) {
 	app.all('/download', middleware.requireUser, routes.views.download);
 	app.get('/about', routes.views.about);
 
-	app.get('/mission/:mission', routes.views.view_mission);
+	app.get('/mission/:mid', routes.views.view_mission.init);
 	app.get('/mission/:mid/tap/:t/', routes.views.view_mission.tap);
-  //app.post('/data/missions/:mid/cap/', require('./views/data/missions/index').cap);
+  app.post('/mission/:mid/cap/', routes.views.view_mission.cap);
 	app.get('/gs/:ground_station', routes.views.view_ground_station);
 
 	app.all('/signup', routes.views.session.signup);

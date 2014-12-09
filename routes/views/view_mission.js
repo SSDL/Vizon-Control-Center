@@ -1,17 +1,14 @@
 var keystone = require('keystone');
 var async = require('async');
 
-exports = module.exports = function(req, res) {
+exports.init = module.exports.init = function(req, res) {
 
 	var locals = res.locals, view = new keystone.View(req, res);
 
 	// locals.section is used to set the currently selected
 	// item in the header navigation.
 	locals.section = 'Missions';
-	console.log(locals.page.path.split('/').slice(-1)[0]);
-	var mission_slug = locals.page.path.split('/').slice(-1)[0];
-	console.log(mission_slug);
-	
+	var mission_slug = req.params.mid;
 	var locals = res.locals,
 			view = new keystone.View(req, res);
   var outcome = {};
@@ -34,7 +31,6 @@ exports = module.exports = function(req, res) {
       taps.sort(function(a,b){
         return a.toObject().ID.split('_')[1] - b.toObject().ID.split('_')[1];
       });
-      console.log(taps);
       var temp = {};
       for (var i = 0; i < taps.length; i++) {
         temp[taps[i].ID] = taps[i].toObject();
@@ -43,7 +39,7 @@ exports = module.exports = function(req, res) {
       return callback(null, 'done');
     });
   };
-    var getCAPDescriptors = function(callback) {
+  var getCAPDescriptors = function(callback) {
     keystone.list('CAP').model.where('ID').regex(/CAP_\d+/).sort('ID').exec(function(err, caps){
       if (err) {
         return callback(err, null);
@@ -51,19 +47,38 @@ exports = module.exports = function(req, res) {
       caps.sort(function(a,b){
         return a.toObject().ID.split('_')[1] - b.toObject().ID.split('_')[1];
       });
-      console.log(caps);
+      for (var i = 0; i < caps.length; i++) {
+      	caps[i] = caps[i].toObject();
+        caps[i].header = outcome.mission.CAPHeader;
+      }
       outcome.cap_descs = caps;
+      console.log(caps);
       return callback(null, 'done');
     });
   };
 
   function asyncFinally(err, results){
-    view.render('view_mission', { 
-      data: outcome
+  	keystone.list('CAP').model.where('ID').regex(/CAP_\d+/).sort('ID').exec(function(err, caps){
+      if (err) {
+        return callback(err, null);
+      }
+      caps.sort(function(a,b){
+        return a.toObject().ID.split('_')[1] - b.toObject().ID.split('_')[1];
+      });
+      for (var i = 0; i < caps.length; i++) {
+      	caps[i] = caps[i].toObject();
+        caps[i].header = outcome.mission.CAPHeader;
+      }
+      outcome.cap_descs = caps;
+      console.log(caps);
+      view.render('view_mission', { 
+      	data: outcome
+    	});
     });
+    
   }
 
-  async.parallel([getMissionInfo, getCAPDescriptors, getTAPDescriptors], asyncFinally);
+  async.parallel([getMissionInfo, getTAPDescriptors], asyncFinally);
 }
 /*var keystone = require('keystone');
 
@@ -85,32 +100,21 @@ exports = module.exports = function(req, res) {
 exports.tap = function(req, res){
   function tapFinally(err, results){
     var output = {};
-    console.log(results);
     for (var i = 0; i < results.length; i++) {
       if(results[i]) { output[results[i]._t.split('_')[1]] = results[i]; } // filters out a null result
     }
-    console.log(output);
     res.send(output);
   }
-
   if(req.params.t === 'all') {
-    req.app.db.models.TAP.distinct( '_t', { 'h.mid': parseInt(req.params.mid) } ).sort( { '_t': 1 } ).exec( function(err, taps) {
+    keystone.db.models('TAPlog').distinct( '_t', { 'h.mid': req.params.mid } ).sort( { '_t': 1 } ).exec( function(err, taps) {
       async.map(taps, function(tap, callback){
-        keystone.list('TAP').model.findOne( { 'h.mid': parseInt(req.params.mid), '_t': tap } ).sort( { '_t': -1 } ).exec( function(err, doc) {
+        keystone.db.models('TAPlog').findOne( { 'h.mid': req.params.mid, '_t': req.params.mid + '-TAP_' + tap } ).sort( { '_t': -1 } ).exec( function(err, doc) {
           callback(null, doc);
         });
       }, tapFinally);
     });
   } else {
     var taplist = req.params.t;
-    console.log(req.params);
-    //console.log(keystone.db.models);
-    console.log(req.params.mid + '-TAP_' + req.params.t);
-    /*keystone.db.models[req.params.mid + '-TAP_' + req.params.t].findOne({}).sort({'h.s':-1}).exec(function(err,doc) {// { 'h.mid': req.params.mid } ).sort( { 'h.s': -1 } ).exec( function(err, doc) {
-        console.log("hello");
-        console.log(doc);
-        console.log("hello2");
-      });*/
     async.map(taplist, function(tap, callback){
       keystone.db.models[req.params.mid + '-TAP_' + tap].findOne({}).sort( { 'h.s': -1 } ).exec( function(err, doc) {
         callback(null, doc);
@@ -120,20 +124,22 @@ exports.tap = function(req, res){
 };
 
 exports.cap = function(req, res, next){
-  var workflow = req.app.utility.workflow(req, res);
+  //var workflow = req.app.utility.workflow(req, res);
+	//console.log(workflow);
+  //workflow.on('validate', function() {
+  //  workflow.emit('findTAP');
+  //});
 
-  workflow.on('validate', function() {
-    workflow.emit('findTAP');
-  });
-
-  workflow.on('findTAP', function() {
+  //workflow.on('findTAP', function() {
+  function findTAP() {
     var outcome = {};
 
     function getNextCAPSeq(callback) {
-      req.app.db.models.CAP.findOne( { 'h.mid': parseInt(req.params.mid) }, {}, {sort: { '_id': -1 } } ).exec( function(err, cap) {
+    	keystone.db.models.CAPlog.findOne( { '_t': new RegExp('^'+ req.params.mid +'-', "i") }, {}, {sort: { '_id': -1 } } ).exec( function(err, cap) {
         if (err) {
           return callback(err, null);
         }
+        console.log('cap', cap);
         outcome.s = (cap ? cap.toObject().h.s + 1 : 1);
         return callback(null, 'done');
 
@@ -141,10 +147,12 @@ exports.cap = function(req, res, next){
     }
 
     function getLastTAPSNAP(callback) {
-      req.app.db.models.TAP.findOne( { 'h.mid': parseInt(req.params.mid) }, {}, {sort: { '_id': -1 } } ).exec( function(err, tap) {
+      keystone.db.models.TAPlog.findOne({'_t': new RegExp('^'+ req.params.mid +'-', "i") }, {}, {sort: { '_id': -1 } } ).exec( function(err, tap) {
         if (err) {
           return callback(err, null);
         }
+        //console.log('tap', tap);
+        console.log(req.body.cap);
         outcome.xt_snap = (tap ? tap.getNewSNAPTime(req.body.cap.h.xt) : 0);
         return callback(null, 'done');
       });
@@ -152,32 +160,35 @@ exports.cap = function(req, res, next){
 
     function asyncFinally(err, results){
       if(err) {
-        return workflow.emit('exception', err);
+        console.log(err);
       }
 
-      return workflow.emit('logCAP', outcome);
+      return logCAP(outcome);
     }
 
     async.parallel([getNextCAPSeq, getLastTAPSNAP], asyncFinally);
-  });
+  };
 
-  workflow.on('logCAP', function(newdata) {
+  function logCAP(newdata) {
     var cap = req.body.cap;
     cap.h.s = newdata.s;
-    cap.h.xt = newdata.xt_snap;
+    cap.h["Sequence Number"] = newdata.s;
+    cap.h["Execution Time"] = newdata.xt_snap;
+    console.log(newdata);
     cap.h.mid = parseInt(req.params.mid);
-
-    req.app.db.models['CAP_'+cap.h.t].create(cap, function(err, newcap) {
+		console.log(req.params.mid + '-CAP_' + cap.h.t);
+		console.log(cap);
+    keystone.db.models[req.params.mid + '-CAP_'+ cap.h.t].create(cap, function(err, newcap) {
       if (err) {
-        return workflow.emit('exception', err);
+        console.log(err);
       }
-
-      workflow.outcome.cap = newcap;
+			console.log(newcap);
+      //workflow.outcome.cap = newcap;
       //if(req.app.httpio)  req.app.httpio.of('/gs').emit('cap', newcap);
       //if(req.app.httpsio) req.app.httpsio.of('/gs').emit('cap', newcap);
-      return workflow.emit('response');
+      //return workflow.emit('response');
     });
-  });
+  };
 
-  workflow.emit('validate');
+  findTAP();
 };
