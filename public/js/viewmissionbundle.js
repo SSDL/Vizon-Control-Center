@@ -19,7 +19,7 @@ $(function() {
       status: 'Disconnected'
     },
     url: function() {
-      return '/data/missions/'+app.mainView.model.get('mission').missionId+'/';
+      return '/mission/'+app.mainView.model.get('mission').missionId+'/';
     }
   });
 
@@ -37,7 +37,7 @@ $(function() {
       return response;
     },
     url: function() {
-      return '/data/missions/'+app.mainView.model.get('mission').missionId+'/tap/' + this.get('tapId') + '/';
+      return '/mission/'+app.mainView.model.get('mission').missionId+'/tap/' + this.get('tapId') + '/';
     }
   });
 
@@ -49,7 +49,7 @@ $(function() {
       }
     },
     url: function() {
-      return '/data/missions/'+app.mainView.model.get('mission').missionId+'/cap/';
+      return '/mission/'+app.mainView.model.get('mission').missionId+'/cap/';
     }
   });
 
