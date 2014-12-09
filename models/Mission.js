@@ -13,7 +13,7 @@ var Mission = new keystone.List('Mission', {
 });
 
 Mission.add({
-	missionId: { type: Number, required: true, initial: true},
+	missionId: { type: String, required: true, initial: true},
 	name: { type: String, required: false },
 	authorizedUsers: { type: Types.Relationship, ref: 'User', index: true, many: true},
 	TAPHeader: {type: Types.TextArray},
