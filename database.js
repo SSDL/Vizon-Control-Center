@@ -45,29 +45,7 @@ module.exports = function(ks){
   // name, unit string, and formatted/converted value. this is chosen as default get action
   // for all TAPS because TAPs are most often fetched for display on the web rather than 
   // for server-side manipulation.
-  function setupTAPSchemaLiteral(desc_prop) {
-    function getValueProperty(val) {
-      var literal = {v: val}
-      if(desc_prop.n) literal.n = desc_prop.n;
-      if(desc_prop.u) literal.u = desc_prop.u;
-      if(desc_prop.c instanceof Array) { // verify that the property conv is an array
-        literal.v = desc_prop.c[0]; // the first element of conv is the linear shift
-        for(var i = 1; i < desc_prop.c.length; i++) { // for the rest of the elements in conv
-          literal.v += desc_prop.c[i] * Math.pow(val, i) // determine the power and constant
-        }
-      } else if(desc_prop.c == 'hex') { // hex string
-        literal.v = '0x' + literal.v;
-      } else if(desc_prop.c == 'snap') { // SNAP time
-        literal.v = new Date((literal.v * 1000) + (new Date('Jan 1, 2000')).getTime());
-      }
-      return literal;
-    }
-    //console.log(desc_prop);
-    var propertyliteral = { type: Number, get: getValueProperty }; // create new schema property literal for plain number
-    if(desc_prop.c == 'string' || desc_prop.c == 'hex') // hex string or regular string
-      propertyliteral.type = String;
-    return propertyliteral;
-  }
+
   
   function setupTAPSchemaLiteral2(desc_prop) {
   	var desc = desc_prop.split(',');
@@ -92,7 +70,7 @@ module.exports = function(ks){
     //console.log(desc_prop);
     var propertyliteral = { type: Number, get: getValueProperty }; // create new schema property literal for plain number
     if (desc.length > 2) {
-	if(desc[2].trim() == 'string' || desc[2].trim() == 'hex') // hex string or regular string
+		if(desc[2].trim() == 'string' || desc[2].trim() == 'hex') // hex string or regular string
         propertyliteral.type = String;
     }  
 	return propertyliteral;
@@ -115,8 +93,7 @@ module.exports = function(ks){
           output = this.getNewSNAPTime();
         return output;
       };
-    }
-}	
+    }	
     return propertyliteral;
   }
   
@@ -194,13 +171,13 @@ module.exports = function(ks){
     else if(desc_typeid) {
     	var tapid = desc_typeid.split('-')[1];
     	//console.log("model", tapid, desc_typeid)
-	regex = new RegExp('^' + tapid + '$') // matches the descriptor typeid specified	
-	var tq = ks.list(tapid.split('_')[0]).model.where('ID').regex(regex).sort('ID').populate('missionId', null, {missionId: desc_typeid.split('-')[0]} );
+			regex = new RegExp('^' + tapid + '$') // matches the descriptor typeid specified	
+			var tq = ks.list(tapid.split('_')[0]).model.where('ID').regex(regex).sort('ID').populate('missionId', null, {missionId: desc_typeid.split('-')[0]} );
     } else {
     	var tq = ks.list('TAP').model.where('ID').regex(regex).sort('ID').populate('missionId');
     	var cq = ks.list('CAP').model.where('ID').regex(regex).sort('ID').populate('missionId');
     	cq.exec(callback);
-	}
+		}
   	tq.exec(callback);
   }
   // this database function loads a packet model based on a descriptor typeid. if the model
@@ -261,14 +238,10 @@ module.exports = function(ks){
 							utils.logText(descriptor.missionId[m].missionId  + '-' + descriptor.ID + ' ' + descriptor.name, 'LOAD'.cyan);
 						}
           }
-          console.log("hello");
           if(callback) callback(db.model(desc_typeid)); // return the model if available, otherwise will be undefined so make sure it's handled in callback
         }
       });
     }
   }
-  
   // generate and cache models from all available descriptors
   db.funcs.loadPacketModel();
-  
-}
