@@ -85,6 +85,7 @@ exports = module.exports = function(req, res) {
 exports.tap = function(req, res){
   function tapFinally(err, results){
     var output = {};
+    console.log(results);
     for (var i = 0; i < results.length; i++) {
       if(results[i]) { output[results[i].h.t] = results[i]; } // filters out a null result
     }
@@ -101,10 +102,22 @@ exports.tap = function(req, res){
       }, tapFinally);
     });
   } else {
-    var taplist = req.params.t.split(',');
-    async.map(taplist, function(tap, callback){
-      tap = 'TAP_' + tap;
-      keystone.list('TAP').model.findOne( { 'h.mid': parseInt(req.params.mid), '_t': tap } ).sort( { '_id': -1 } ).exec( function(err, doc) {
+    var taplist = req.params.t;
+    console.log(req.params);
+    //console.log(keystone.db.models);
+    console.log(req.params.mid + '-TAP_' + req.params.t);
+    //console.log(keystone.db.models[req.params.mid + '-TAP_' + req.params.t]);
+    console.log("break1");
+    //console.log(keystone.db.models);
+    console.log("break2");
+    keystone.db.models[req.params.mid + '-TAP_' + req.params.t].findOne({}).exec(function(err,doc) {// { 'h.mid': req.params.mid } ).sort( { 'h.s': -1 } ).exec( function(err, doc) {
+        console.log("hello");
+        console.log(doc);
+        console.log("hello2");
+      });
+    async.map(req.params, function(tap, callback){
+    	console.log("hello");
+      keystone.db.models[tap.mid + '-TAP_' + tap.t].findOne( { 'h.mid': parseInt(tap.mid), 'ID': tap } ).sort( { 'h.s': -1 } ).exec( function(err, doc) {
         callback(null, doc);
       });
     }, tapFinally);
