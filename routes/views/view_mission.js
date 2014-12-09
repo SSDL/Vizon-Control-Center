@@ -87,7 +87,7 @@ exports.tap = function(req, res){
     var output = {};
     console.log(results);
     for (var i = 0; i < results.length; i++) {
-      if(results[i]) { output[results[i].split('_')[1]] = results[i]; } // filters out a null result
+      if(results[i]) { output[results[i]._t.split('_')[1]] = results[i]; } // filters out a null result
     }
     console.log(output);
     res.send(output);
