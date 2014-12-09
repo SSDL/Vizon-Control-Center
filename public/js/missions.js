@@ -224,7 +224,7 @@ $(function() {
 		});
     socket = io.connect('/web');
     socket.on('connect', function () {
-      socket.emit('join-mid',app.mainView.model.get('mission').missionId);
+      //socket.emit('join-mid',app.mainView.model.get('mission').missionId);
       app.headerView.model.set('status','Live');
     });
     socket.on('disconnect', function () {
