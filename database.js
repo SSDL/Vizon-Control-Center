@@ -54,26 +54,26 @@ module.exports = function(ks){
       if(desc[0]) literal.n = desc[0];
       //if(desc_prop.u) literal.u = desc_prop.u;
       if (desc.length > 2) {
-	if(desc.length > 3) { // verify that the property conv is an array
-        literal.v = Number(desc[2]); // the first element of conv is the linear shift
-        for(var i = 3; i < desc.length; i++) { // for the rest of the elements in conv
-          literal.v += Number(desc[i]) * Math.pow(val, i) // determine the power and constant
-        }
-      } else if(desc[2].trim() == 'hex') { // hex string
-        literal.v = '0x' + literal.v;
-      } else if(desc[2].trim() == 'snap') { // SNAP time
-        literal.v = new Date((literal.v * 1000) + (new Date('Jan 1, 2000')).getTime());
-      }
-   } 
+				if(desc.length > 3) { // verify that the property conv is an array
+        	literal.v = Number(desc[2]); // the first element of conv is the linear shift
+        	for(var i = 3; i < desc.length; i++) { // for the rest of the elements in conv
+          	literal.v += Number(desc[i]) * Math.pow(val, i) // determine the power and constant
+        	}
+      	} else if(desc[2].trim() == 'hex') { // hex string
+       		literal.v = '0x' + literal.v;
+      	} else if(desc[2].trim() == 'snap') { // SNAP time
+        	literal.v = new Date((literal.v * 1000) + (new Date('Jan 1, 2000')).getTime());
+      	}
+   		} 
       return literal;
     }
     //console.log(desc_prop);
     var propertyliteral = { type: Number, get: getValueProperty }; // create new schema property literal for plain number
     if (desc.length > 2) {
-		if(desc[2].trim() == 'string' || desc[2].trim() == 'hex') // hex string or regular string
+			if(desc[2].trim() == 'string' || desc[2].trim() == 'hex') // hex string or regular string
         propertyliteral.type = String;
     }  
-	return propertyliteral;
+		return propertyliteral;
   }
   
   // this function dynamically crates the literal for a given CAP descriptor property.
@@ -92,48 +92,11 @@ module.exports = function(ks){
         else if(val == 0)
           output = this.getNewSNAPTime();
         return output;
-      };
+      }
     }	
     return propertyliteral;
   }
-  
-  db.schemas.Descriptor = mongoose.Schema({
-    _id: String,
-    n: String,
-    h: [{
-      n: String,
-      l: Number,
-      f: String,
-      c: String,
-      }],
-    p: [{
-      n: String,
-      l: Number,
-      f: String,
-      c: [Number, Number],
-      u: String
-      }]
-  },{ versionKey: false, id: false });
-  db.model('Descriptor', db.schemas.Descriptor, 'descriptors');
-  
-  db.schemas.Descriptor2 = mongoose.Schema({
-    _id: String,
-    n: String,
-    h: [{
-      n: String,
-      l: Number,
-      f: String,
-      c: String,
-      }],
-    p: [{
-      n: String,
-      l: Number,
-      f: String,
-      c: [Number, Number],
-      u: String
-      }]
-  },{ versionKey: false, id: false });
-  db.model('Descriptor2', db.schemas.Descriptor2, 'descriptors2');  
+    
   // TAP setup
   db.schemas.TAP = mongoose.Schema({}, { collection : 'taplog', versionKey: false, id: false, discriminatorKey : '_t' });
   db.schemas.TAP.virtual('d').get(function(){ return this._id.getTimestamp(); });
@@ -152,18 +115,10 @@ module.exports = function(ks){
   db.schemas.CAP.set('toJSON', { getters: true, virtuals: true });
   db.model('CAPlog', db.schemas.CAP);
   
-  
-
   // this database function returns the descriptor for a given packet descriptor typeid.
   // if the descriptor is not cached, it is retrieved from the database and passed to a
   // callback. if no descriptor typeid is provided, the default regex match will retrieve
   // all possible descriptors from the database.
-  db.funcs.loadPacketDescriptors = function(desc_typeid, callback){
-    var regex = /.+_\d+/; // match all xxx_###
-    if(typeof desc_typeid === 'function') callback = desc_typeid
-    else if(desc_typeid) regex = new RegExp('^' + desc_typeid + '$') // matches the descriptor typeid specified
-    db.models.Descriptor.where('_id').regex(regex).sort('_id').exec(callback);
-  }
   db.funcs.loadPacketDescriptors2 = function(desc_typeid, callback){
     var regex = /.+_\d+/; // match all xxx_###
     
@@ -245,3 +200,4 @@ module.exports = function(ks){
   }
   // generate and cache models from all available descriptors
   db.funcs.loadPacketModel();
+}
