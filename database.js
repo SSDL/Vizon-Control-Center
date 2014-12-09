@@ -219,7 +219,6 @@ module.exports = function(ks){
           utils.log(err);
         }
         else {
-        	console.log(descriptors);
           for(var k in descriptors) { // for each retrieved descriptor, even if 1
             var descriptor = descriptors[k].toObject(); // call toObject to only get "descriptor elements", not the extra Mongoose stuff
 						//console.log(m);
