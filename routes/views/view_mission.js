@@ -110,7 +110,7 @@ exports.tap = function(req, res){
     console.log("break1");
     //console.log(keystone.db.models);
     console.log("break2");
-    keystone.db.models[req.params.mid + '-TAP_' + req.params.t].findOne({'h.mid':req.params.mid}).exec(function(err,doc) {// { 'h.mid': req.params.mid } ).sort( { 'h.s': -1 } ).exec( function(err, doc) {
+    keystone.db.models[req.params.mid + '-TAP_' + req.params.t].findOne({'h.mid':req.params.mid}).sort({'h.s':-1}).exec(function(err,doc) {// { 'h.mid': req.params.mid } ).sort( { 'h.s': -1 } ).exec( function(err, doc) {
         console.log("hello");
         console.log(doc);
         console.log("hello2");
