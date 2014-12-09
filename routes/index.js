@@ -54,6 +54,8 @@ exports = module.exports = function(app) {
 	app.get('/about', routes.views.about);
 
 	app.get('/mission/:mission', routes.views.view_mission);
+	app.get('/data/missions/:mid/tap/:t/', routes.views.view_mission.tap);
+  //app.post('/data/missions/:mid/cap/', require('./views/data/missions/index').cap);
 	app.get('/gs/:ground_station', routes.views.view_ground_station);
 
 	app.all('/signup', routes.views.session.signup);

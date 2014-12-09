@@ -253,7 +253,7 @@ module.exports = function(ks){
 							} );
 
 	newSchema.virtual('h.t').get(function(){ return this._t; });
-	newSchema.virtual('h.s').get(function(){return this.h["Sequence Number"]});
+	newSchema.virtual('h.s').get(function(){return parseInt(this.h["Sequence Number"])});
 	newSchema.index({ '_t': 1, 'h.s': -1 }, { unique: true });
 							
 							db.model(descriptor.missionId[m].missionId  + '-' + descriptor.ID, newSchema);
