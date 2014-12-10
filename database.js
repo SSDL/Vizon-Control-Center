@@ -187,7 +187,7 @@ module.exports = function(ks){
 
 							newSchema.virtual('h.t').get(function(){ return this._t; });
 							newSchema.virtual('h.s').get(function(){return parseInt(this.h["Sequence Number"])});
-							newSchema.index({ '_t': 1, 'h.s': -1 }, { unique: true });
+							newSchema.index({ '_t': 1, 'h.Sequence Number': -1 }, { unique: true });
 													
 							db.model(descriptor.missionId[m].missionId  + '-' + descriptor.ID, newSchema);
 							utils.logText(descriptor.missionId[m].missionId  + '-' + descriptor.ID + ' ' + descriptor.name, 'LOAD'.cyan);

@@ -135,7 +135,7 @@ exports.cap = function(req, res, next){
     var outcome = {};
 
     function getNextCAPSeq(callback) {
-    	keystone.db.models.CAPlog.findOne( { '_t': new RegExp('^'+ req.params.mid +'-', "i") }, {}, {sort: { '_id': -1 } } ).exec( function(err, cap) {
+    	keystone.db.models.CAPlog.findOne( { 'h.mid': parseInt(req.params.mid) }, {}, {sort: { 'h.Sequence Number': -1 } } ).exec( function(err, cap) {
         if (err) {
           return callback(err, null);
         }
@@ -147,7 +147,7 @@ exports.cap = function(req, res, next){
     }
 
     function getLastTAPSNAP(callback) {
-      keystone.db.models.TAPlog.findOne({'_t': new RegExp('^'+ req.params.mid +'-', "i") }, {}, {sort: { '_id': -1 } } ).exec( function(err, tap) {
+      keystone.db.models.TAPlog.findOne({ 'h.mid': parseInt(req.params.mid) }, {}, {sort: { 'h.Sequence Number': -1 } } ).exec( function(err, tap) {
         if (err) {
           return callback(err, null);
         }
@@ -162,10 +162,8 @@ exports.cap = function(req, res, next){
       if(err) {
         console.log(err);
       }
-
       return logCAP(outcome);
     }
-
     async.parallel([getNextCAPSeq, getLastTAPSNAP], asyncFinally);
   };
 
@@ -182,7 +180,9 @@ exports.cap = function(req, res, next){
       if (err) {
         console.log(err);
       }
-			console.log(newcap);
+			console.log("about to send out socket.emit", newcap);
+			keystone.listener.of('/gs').emit('cap', newcap);
+            
       //workflow.outcome.cap = newcap;
       //if(req.app.httpio)  req.app.httpio.of('/gs').emit('cap', newcap);
       //if(req.app.httpsio) req.app.httpsio.of('/gs').emit('cap', newcap);

@@ -161,6 +161,7 @@ module.exports = function(app){
           } else {
             createConfirmation(tap, newtap.h.t + ' logged'.green, socket);
             // Where does this line go?
+            console.log("In recordTAP, Just got TAP.  Emitting to socket.  finding CAPS");
             app.listener.of('/web').in(tap.h.mid).emit('new-tap', newtap._t);
             findCAPs(newtap, socket);
           }
@@ -173,8 +174,11 @@ module.exports = function(app){
   
   
   function findCAPs(TAPrecord, socket) {
-    db.models.CAP.find({'h.mid':TAPrecord.h.mid, 'td': null }).exec(function(err, caps){
+    //db.models.CAPlog.findOne( { '_t': new RegExp('^'+ TAPrecord.h.mid +'-', "i") }).exec( function(err, caps) {
+    console.log("In findCAPs", TAPrecord);
+    db.models.CAPlog.find({'h.mid':TAPrecord.h.mid, 'td': null }).exec(function(err, caps){
       for(var i in caps) {
+      	console.log("In findCAPS looking for caps: ", caps);
         caps[i].td = new Date();
         caps[i].save();
         var cap = caps[i].toObject();
