@@ -71,9 +71,9 @@ $(function() {
     template: _.template( $('#tmpl-raw').html() ),
     initialize: function() {
       var _this = this;
-      console.log(this, "hey", _this);
       this.listenTo(this.model, 'sync', this.render);
       console.log('new-TAP_'+this.model.get('tapId'));
+      console.log(this.model);
       ee.addListener('new-TAP_'+this.model.get('tapId'), function(){
         _this.model.fetch();
       });
