@@ -15,6 +15,7 @@ User.add({
 	email: { type: Types.Email, initial: true, required: true, index: true },
 	phone : {type : String},
 	password: { type: Types.Password, initial: true, required: true },
+	resetPasswordKey: {type: String, hidden: true},
 }, 'Permissions', {
 	isAdmin: { type: Boolean, label: 'Can access Keystone', index: true },
 });
@@ -23,7 +24,36 @@ User.add({
 User.schema.virtual('canAccessKeystone').get(function() {
 	return this.isAdmin;
 });
+/*******************************************************************************
+ * Methods
+ */
 
+User.schema.methods.resetPassword = function(callback) {
+
+	var user = this;
+
+	user.resetPasswordKey = keystone.utils.randomString([ 16, 24 ]);
+
+	user.save(function(err) {
+
+		if (err)
+			return callback(err);
+
+		new keystone.Email('forgotten-password').send({
+			host : "vizon.us",
+			user : user,
+			link : '/reset-password/' + user.resetPasswordKey,
+			subject : 'Reset Vizon Password',
+			to : user.email,
+			from : {
+				name : 'admin',
+				email : 'admin@vizon.us'
+			}
+		}, callback);
+
+	});
+
+};
 
 /**
  * Relationships

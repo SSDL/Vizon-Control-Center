@@ -1,19 +1,19 @@
 /**
  * This file is where you define your application routes and controllers.
- *
- * Start by including the middleware you want to run for every request;
- * you can attach middleware to the pre('routes') and pre('render') events.
- *
- * For simplicity, the default setup for route controllers is for each to be
- * in its own file, and we import all the files in the /routes/views directory.
- *
+ * 
+ * Start by including the middleware you want to run for every request; you can
+ * attach middleware to the pre('routes') and pre('render') events.
+ * 
+ * For simplicity, the default setup for route controllers is for each to be in
+ * its own file, and we import all the files in the /routes/views directory.
+ * 
  * Each of these files is a route controller, and is responsible for all the
  * processing that needs to happen for the route (e.g. loading data, handling
  * form submissions, rendering the view template, etc).
- *
+ * 
  * Bind each route pattern your application should respond to in the function
  * that is exported from this module, following the examples below.
- *
+ * 
  * See the Express application routing documentation for more information:
  * http://expressjs.com/api.html#app.VERB
  */
@@ -52,10 +52,15 @@ exports = module.exports = function(app) {
 
 	app.all('/download', middleware.requireUser, routes.views.download);
 	app.get('/about', routes.views.about);
+	app.get('/getting-started', routes.views.getting_started);
+	app.get('/how-vizon-works', routes.views.how_vizon_works);
+	app.get('/faq', routes.views.faq);
+	app.get('/partnerships', routes.views.partnerships);
 
+	
 	app.get('/mission/:mid', routes.views.view_mission.init);
 	app.get('/mission/:mid/tap/:t/', routes.views.view_mission.tap);
-  app.post('/mission/:mid/cap/', routes.views.view_mission.cap);
+	app.post('/mission/:mid/cap/', routes.views.view_mission.cap);
 	app.get('/gs/:ground_station', routes.views.view_ground_station);
 
 	app.all('/signup', routes.views.session.signup);
@@ -64,7 +69,8 @@ exports = module.exports = function(app) {
 	app.all('/reset-password/:key', routes.views.session['reset-password']);
 	app.get('/signout', routes.views.session.signout);
 
-	// NOTE: To protect a route so that only admins can see it, use the requireUser middleware:
+	// NOTE: To protect a route so that only admins can see it, use the
+	// requireUser middleware:
 	// app.get('/protected', middleware.requireUser, routes.views.protected);
 
 };
