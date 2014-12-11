@@ -102,7 +102,8 @@ exports.init = module.exports.init = function(req, res) {
 exports.tap = function(req, res) {
 	function tapFinally(err, results) {
 		var output = {};
-		for (var i = 0; i < results.length; i++) {
+console.log(results);		
+for (var i = 0; i < results.length; i++) {
 			if (results[i]) {
 				output[results[i]._t.split('_')[1]] = results[i];
 			} // filters out a null result
@@ -129,7 +130,8 @@ exports.tap = function(req, res) {
 	} else {
 		var taplist = req.params.t;
 		async.map(taplist, function(tap, callback) {
-			keystone.db.models[req.params.mid + '-TAP_' + tap].findOne({})
+console.log("TAPTAP", tap);			
+keystone.db.models[req.params.mid + '-TAP_' + tap].findOne({})
 					.sort({
 						'h.Sequence Number' : -1
 					}).exec(function(err, doc) {
