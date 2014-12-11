@@ -170,6 +170,7 @@ exports.cap = function(req, res, next){
     var cap = req.body.cap;
     cap.h.s = newdata.s;
    // cap.td = null;
+    cap.h["CAP ID"] = cap.h.t;
     cap.h["Sequence Number"] = newdata.s;
     cap.h["Execution Time"] = newdata.xt_snap;
     cap.h.mid = parseInt(req.params.mid);
@@ -177,6 +178,7 @@ exports.cap = function(req, res, next){
       if (err) {
         console.log(err);
       }
+      console.log(newcap);
 			//console.log("about to send out socket.emit", newcap);
 			//keystone.listener.of('/gs').emit('cap', newcap);
             
