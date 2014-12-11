@@ -75,6 +75,7 @@ $(function() {
     initialize: function() {
       var _this = this;
       this.listenTo(this.model, 'sync', this.render);
+      console.log('new-TAP_'+this.model.get('tapId'));
       ee.addListener('new-TAP_'+this.model.get('tapId'), function(){
         _this.model.fetch();
       });
@@ -238,7 +239,8 @@ $(function() {
       app.headerView.model.set('status','Unauthorized');
     });
     socket.on('new-tap', function (data) {
-      ee.emit('new-'+data);
+    	console.log('new-'+data.split('-')[1]);
+      ee.emit('new-'+data.split('-')[1]);
     });
   });
 },{"events":2}],2:[function(require,module,exports){
