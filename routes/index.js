@@ -52,7 +52,10 @@ exports = module.exports = function(app) {
 
 	app.all('/download', middleware.requireUser, routes.views.download);
 	app.get('/about', routes.views.about);
+	app.get('/getting-started', routes.views.getting_started);
 
+	
+	
 	app.get('/mission/:mid', routes.views.view_mission.init);
 	app.get('/mission/:mid/tap/:t/', routes.views.view_mission.tap);
 	app.post('/mission/:mid/cap/', routes.views.view_mission.cap);
