@@ -37,7 +37,6 @@ exports.init = module.exports.init = function(req, res) {
 							for (var i = 0; i < taps.length; i++) {
 								temp[taps[i].ID] = taps[i].toObject();
 							}
-							console.log(temp);
 							outcome.tap_descs = temp;
 							return callback(null, 'done');
 						});
@@ -102,8 +101,7 @@ exports.init = module.exports.init = function(req, res) {
 exports.tap = function(req, res) {
 	function tapFinally(err, results) {
 		var output = {};
-console.log(results);		
-for (var i = 0; i < results.length; i++) {
+		for (var i = 0; i < results.length; i++) {
 			if (results[i]) {
 				output[results[i]._t.split('_')[1]] = results[i];
 			} // filters out a null result
@@ -136,7 +134,6 @@ for (var i = 0; i < results.length; i++) {
 					.sort({
 						'h.Sequence Number' : -1
 					}).exec(function(err, doc) {
-						console.log(doc);
 						callback(null, doc);
 					});
 		}, tapFinally);
@@ -212,7 +209,6 @@ exports.cap = function(req, res, next) {
 					if (err) {
 						console.log(err);
 					}
-					console.log(newcap);
 					// console.log("about to send out socket.emit", newcap);
 					// keystone.listener.of('/gs').emit('cap', newcap);
 
