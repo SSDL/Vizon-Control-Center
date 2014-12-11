@@ -67,7 +67,6 @@ module.exports = function(ks){
    		} 
       return literal;
     }
-    //console.log(desc_prop);
     var propertyliteral = { type: Number, get: getValueProperty }; // create new schema property literal for plain number
     if (desc.length > 2) {
 			if(desc[2].trim() == 'string' || desc[2].trim() == 'hex') // hex string or regular string
@@ -125,7 +124,6 @@ module.exports = function(ks){
     if(typeof desc_typeid === 'function') callback = desc_typeid
     else if(desc_typeid) {
     	var tapid = desc_typeid.split('-')[1];
-    	//console.log("model", tapid, desc_typeid)
 			regex = new RegExp('^' + tapid + '$') // matches the descriptor typeid specified	
 			var tq = ks.list(tapid.split('_')[0]).model.where('ID').regex(regex).sort('ID').populate('missionId', null, {missionId: desc_typeid.split('-')[0]} );
     } else {
@@ -153,7 +151,6 @@ module.exports = function(ks){
         else {
           for(var k in descriptors) { // for each retrieved descriptor, even if 1
             var descriptor = descriptors[k].toObject(); // call toObject to only get "descriptor elements", not the extra Mongoose stuff
-						//console.log(m);
 						for (var m in descriptor.missionId) {
 							var mission = descriptor.missionId[m];
 							var isTAP = /^TAP_.*/.test(descriptor.ID);

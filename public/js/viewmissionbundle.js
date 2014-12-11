@@ -106,7 +106,6 @@ $(function() {
       _.extend(attrs,this.cap_desc);
       this.$el.html(this.template( attrs ));
       var picker = $('.datetimepicker',this.$el);
-      console.log(picker);
       picker.datetimepicker({
         format: 'yyyy-mm-ddThh:ii:ss', // datepicker format found at http://www.malot.fr/bootstrap-datetimepicker/
         autoclose: 1,
@@ -160,7 +159,6 @@ $(function() {
     send: function() {
       var _this = this;
       var val = '';
-      console.log(this);
       var cap = { h: {}, p: {}};
       _.each(this.cap_desc.package, function(elem) {
       	var f = elem.split(',')[0];
@@ -172,7 +170,6 @@ $(function() {
 					else { cap.p[f] = parseInt(val); }
 				}
       });
-      console.log(this)
       cap.h.t = this.cap_desc.ID.split('_')[1];
       var field =  _this.$el.find('[name="xt"]');
       val = (field.val() === '' ? moment() : moment(field.val())); // moment format not used but found at http://momentjs.com/docs/#/parsing/string-format/
@@ -200,13 +197,9 @@ $(function() {
       $('#cap_selector').prop('selectedIndex',-1);
     },
     render: function() {
-    	console.log(this);
       this.$el.html( this.template({ cap_descs: this.collection.models }));
     },
     show: function() {
-    	console.log(this.views[1]);
-    	console.log(this.views);
-    	console.log(this.views[0]);
       $('#cap').empty().append(this.views[$('#cap_selector').prop('selectedIndex')-1].render().el);
     }
   });
@@ -232,7 +225,7 @@ $(function() {
 		});
     socket = io.connect('/web');
     socket.on('connect', function () {
-      //socket.emit('join-mid',app.mainView.model.get('mission').missionId);
+      socket.emit('join-mid',app.mainView.model.get('mission').missionId);
       app.headerView.model.set('status','Live');
     });
     socket.on('disconnect', function () {
@@ -248,29 +241,6 @@ $(function() {
       ee.emitEvent('new-'+data);
     });
   });
-
-/*$(function () {
-	
-	var socket = io.connect('/web');
-	
-	socket.emit('querymissions');
-	
-	socket.on('querymissions', function(data) {
-		for (var k in data) {
-			var $newli = $(" <li role=presentation >");
-			var $newa = $("<a class=missionvar role=menuitem tabindex=-1 href=#>");
-			$newa.text( data[k].missionId + ', ' + data[k].title);
-			$newli.append($newa);
-			$("#missiondd").append($newli);
-		}
-	});
-	
-	$("#missiondd").on('click', '.missionvar', function() {
-	  var variable = $(this).text();
-	  $("#missionddb")[0].innerText = variable;
-	});
-	
-});*/
 },{"events":2}],2:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //

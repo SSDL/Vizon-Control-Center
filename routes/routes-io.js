@@ -148,44 +148,38 @@ module.exports = function(app){
   
   
   function recordTAP(tap, socket) {
-   console.log(tap) 
-   console.log(tap.h.t);
-   db.funcs.loadPacketModel(tap.h.mid + "-TAP_" + tap.h["TAP ID"], function(tapmodel){
-      if(tapmodel) {
-	  tapmodel.create(tap , function (err, newtap) {
-	  console.log(err);
-          if (err && err.code == 11000) { // duplicate key error
-            createConfirmation(tap, tap.h.t + ' already logged'.red, socket);
-          } else if(err) {
-            createConfirmation(tap, tap.h.t + ' not saved - db error'.red, socket);
-            utils.log(err);
-          } else {
-            createConfirmation(tap, newtap.h.t + ' logged'.green, socket);
-            // Where does this line go?
-            console.log("In recordTAP, Just got TAP.  Emitting to socket.  finding CAPS");
-            app.listener.of('/web').in(tap.h.mid).emit('new-tap', newtap._t);
-            findCAPs(newtap, socket);
-          }
-        });
-      } else {
-        createConfirmation(socket.accesslog.gsid, tap, tap.h.t + ' unknown'.red, socket);
-      }
+  	db.funcs.loadPacketModel(tap.h.mid + "-TAP_" + tap.h["TAP ID"], function(tapmodel){
+   		if(tapmodel) {
+	  		tapmodel.create(tap , function (err, newtap) {
+	  			console.log(err);
+					if (err && err.code == 11000) { // duplicate key error
+						createConfirmation(tap, tap.h.t + ' already logged'.red, socket);
+					} else if(err) {
+						createConfirmation(tap, tap.h.t + ' not saved - db error'.red, socket);
+						utils.log(err);
+					} else {
+						createConfirmation(tap, newtap.h.t + ' logged'.green, socket);
+					// Where does this line go?
+						app.listener.of('/web').in(tap.h.mid).emit('new-tap', newtap._t);
+						findCAPs(newtap, socket);
+					}
+      	});
+    	} else {
+      	createConfirmation(socket.accesslog.gsid, tap, tap.h.t + ' unknown'.red, socket);
+    	}
     });
   }
   
   
   function findCAPs(TAPrecord, socket) {
     //db.models.CAPlog.findOne( { '_t': new RegExp('^'+ TAPrecord.h.mid +'-', "i") }).exec( function(err, caps) {
-    console.log("In findCAPs", TAPrecord);
     db.models.CAPlog.find({ 'h.mid' : TAPrecord.h.mid, 'td': null }).exec(function(err, caps){
       for(var i in caps) {
-      	console.log("In findCAPS looking for caps: ", caps);
         caps[i].td = new Date();
-        console.log(caps[i].save);
-	caps[i].save(function(err) {
-		if(err) 
-			console.log(err);
-	});
+				caps[i].save(function(err) {
+			if(err) 
+				console.log(err);
+		});
         var cap = caps[i].toObject();
         cap = { h: cap.h, p: cap.p };
         socket.emit('cap',cap);

@@ -105,7 +105,6 @@ exports.tap = function(req, res){
     res.send(output);
   }
   if(req.params.t === 'all') {
-  	console.log("ALL");
     keystone.db.models('TAPlog').distinct( '_t', { 'h.mid': req.params.mid } ).sort( { '_t': 1 } ).exec( function(err, taps) {
       async.map(taps, function(tap, callback){
         keystone.db.models('TAPlog').findOne( { 'h.mid': req.params.mid, '_t': req.params.mid + '-TAP_' + tap } ).sort( { '_t': -1 } ).exec( function(err, doc) {
@@ -117,7 +116,6 @@ exports.tap = function(req, res){
     var taplist = req.params.t;
     async.map(taplist, function(tap, callback){
       keystone.db.models[req.params.mid + '-TAP_' + tap].findOne({}).sort( { 'h.Sequence Number': -1 } ).exec( function(err, doc) {
-        console.log(doc);
         callback(null, doc);
       });
     }, tapFinally);
