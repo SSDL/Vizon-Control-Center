@@ -44,4 +44,4 @@ exports = module.exports = function(req, res) {
 	
 	view.render('session/reset-password');
 	
-}
+};

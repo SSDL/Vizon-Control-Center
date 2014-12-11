@@ -1,16 +1,16 @@
 module.exports = function(app){
 
-  var crypto = require('crypto')
-    , async = require('async')
-    , utils = require('./utils')
-    , db = app.db;
-    ;
+  var crypto = require('crypto'),
+    async = require('async'),
+    utils = require('./utils'),
+    db = app.db;
   // attach namespace connection handlers to the io-enabled apps
   
 	app.listener.of('/gs').on('connection', handleGSSocketAuthorization);
 	app.listener.of('/web').on('connection', handleWebSocketConnection);
   
-  // basic web client socket connections. only one event is implemented currently.
+  // basic web client socket connections. only one event is implemented
+	// currently.
   function handleWebSocketConnection(socket) {
     socket.on('join-mid',function(mid){
       socket.join(mid);
@@ -27,7 +27,7 @@ module.exports = function(app){
     		app.list('TAP').model.where('missionId', data[0]._id).exec(function(err, data) {
     			taps = [];
     			for ( var k in data ) {
-    				tap = {}
+    				tap = {};
   	    		tap.name = data[k].name;
   	    		tap.ID = data[k].ID;
   	    		tap.data = [];
@@ -46,7 +46,7 @@ module.exports = function(app){
       	var data = {};
       	var series = [];
       	log.forEach( function(tap) {
-      		// Change the .v thing.  Obsolete now.
+      		// Change the .v thing. Obsolete now.
 	        var ts = (new Date(tap.h.Timestamp.v).getTime());
 
 		if ( tap.p[tapinfo[1]] )  
@@ -59,7 +59,7 @@ module.exports = function(app){
     });
   }
   
-  // Begin authorization of the new groundstation socket connection. 
+  // Begin authorization of the new groundstation socket connection.
   // When the client initiates the auth process, they will send a gsid
   // that we will use to look up the gs key for performing an hmac
   // challenge/response using random data. The connection is logged.
@@ -100,12 +100,12 @@ module.exports = function(app){
             return;
           }
           socket.gs = results.gs;
-          //socket.accesslog = results.log;
+          // socket.accesslog = results.log;
           handleGSSocketConnection(socket);
           utils.logText('GS ', 'AUTH'.green);
           socket.emit('auth-pass');
-          //results.log.auth = true;
-          //results.log.save();
+          // results.log.auth = true;
+          // results.log.save();
         });
       });
     });
@@ -113,7 +113,7 @@ module.exports = function(app){
   
   function handleGSSocketConnection(socket) {
     socket.on('disconnect', function() {
-      utils.logText('GS ', //  socket.accesslog.gsid,
+      utils.logText('GS ', // socket.accesslog.gsid,
  	'DISC'.yellow);
     });
     
@@ -127,7 +127,9 @@ module.exports = function(app){
       utils.logText('Descriptor request for ' + desc_typeid);
       db.funcs.loadPacketDescriptors2(desc_typeid, function(err,descriptors){
 	for(var i in descriptors) {
-	  descriptors[i] = descriptors[i].toJSON(); // needed to make the object purely JSON, no mongoose stuff
+	  descriptors[i] = descriptors[i].toJSON(); // needed to make the object
+												// purely JSON, no mongoose
+												// stuff
           
 	  for (var m in descriptors[i].missionId) {
           	console.log(descriptors[i]);
@@ -174,14 +176,15 @@ module.exports = function(app){
   
   
   function findCAPs(TAPrecord, socket) {
-    //db.models.CAPlog.findOne( { '_t': new RegExp('^'+ TAPrecord.h.mid +'-', "i") }).exec( function(err, caps) {
+    // db.models.CAPlog.findOne( { '_t': new RegExp('^'+ TAPrecord.h.mid +'-',
+	// "i") }).exec( function(err, caps) {
     db.models.CAPlog.find({ 'h.mid' : TAPrecord.h.mid, 'td': null }).exec(function(err, caps){
       for(var i in caps) {
         caps[i].td = new Date();
-				caps[i].save(function(err) {
-			if(err) 
-				console.log(err);
-		});
+        caps[i].save(function(err) {
+          if(err) 
+          console.log(err);
+          });
         var cap = caps[i].toObject();
         cap = { h: cap.h, p: cap.p };
         socket.emit('cap',cap);
@@ -195,7 +198,7 @@ module.exports = function(app){
     var hash = crypto.createHash('sha1').update(JSON.stringify(packet)).digest('hex');
     packet = hash.substring(0,6) + ' ' + text;
     socket.emit('info',packet);
-    //logPacket(packet, 'INF', 'to GS ' + gsid);
+    // logPacket(packet, 'INF', 'to GS ' + gsid);
   }
   
   function logPacket(packet, TYPE, text, hash) {
@@ -203,4 +206,4 @@ module.exports = function(app){
     utils.log((utils.napcolors[TYPE] ? utils.napcolors[TYPE] : '') + TYPE + utils.napcolors.RST + ' ' + hash.substring(0,6) + ' ' + text, packet);
   }
   
-}
+};

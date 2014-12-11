@@ -28,8 +28,8 @@ TAP.schema.post('save', function(tap) {
 			//console.log("In here!", data.missionId[k]);
 			delete keystone.mongoose.connection.models[data.missionId[k].missionId + '-' + data.ID];
 		}
-		for (var k in data.missionId) {
-			keystone.mongoose.connection.funcs.loadPacketModel(data.missionId[k].missionId + '-' + data.ID);
+		for (var i in data.missionId) {
+			keystone.mongoose.connection.funcs.loadPacketModel(data.missionId[i].missionId + '-' + data.ID);
 		}
 	});
 });

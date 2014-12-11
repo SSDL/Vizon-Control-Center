@@ -27,12 +27,12 @@ exports = module.exports = function(req, res) {
 			} else {
 				res.redirect('/');
 			}
-		}
+		};
 		
 		var onFail = function() {
 			req.flash('error', 'Your username or password were incorrect, please try again.');
 			return next();
-		}
+		};
 		
 		keystone.session.signin({ email: req.body.email, password: req.body.password }, req, res, onSuccess, onFail);
 		
@@ -40,4 +40,4 @@ exports = module.exports = function(req, res) {
 	
 	view.render('session/signin');
 	
-}
+};

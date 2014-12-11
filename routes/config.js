@@ -63,6 +63,7 @@ exports.smtp = {
     ssl: true
   }
 };
+/*
 exports.oauth = {
   twitter: {
     key: process.env.TWITTER_OAUTH_KEY || '',
@@ -80,4 +81,4 @@ exports.oauth = {
     key: process.env.GOOGLE_OAUTH_KEY || '',
     secret: process.env.GOOGLE_OAUTH_SECRET || ''
   }
-};
+};*/
