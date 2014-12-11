@@ -19,6 +19,7 @@ $(function() {
 
   app.TAP = Backbone.Model.extend({
     parse: function(response) {
+    	console.log(response);
       if (response[this.get('tapId')]) {
         response.tap = response[this.get('tapId')];
         response.tap_desc = app.mainView.model.get('tap_descs')['TAP_'+this.get('tapId')];
@@ -203,6 +204,7 @@ $(function() {
     initialize: function() {
       app.mainView = this;
       this.model = new app.MissionData( JSON.parse( unescape($('#data-mission').html()) ) );
+      console.log(this.model.get('tap_descs'));
       if(this.model.get('tap_descs').TAP_1) { app.beaconView = new app.TAPView({el: '#beacon', model: new app.TAP({tap: {}, tapId: 1})}); }
       if(this.model.get('tap_descs').TAP_2) { app.bustelemView = new app.TAPView({el: '#cmdecho', model: new app.TAP({tap: {}, tapId: 2})}); }
       if(this.model.get('tap_descs').TAP_3) { app.bustelemView = new app.TAPView({el: '#bustelem', model: new app.TAP({tap: {}, tapId: 3})}); }
