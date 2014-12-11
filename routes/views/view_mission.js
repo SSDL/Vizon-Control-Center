@@ -129,7 +129,7 @@ exports.tap = function(req, res) {
 	} else {
 		var taplist = req.params.t;
 		async.map(taplist, function(tap, callback) {
-			keystone.db.models[req.params.mid + '-TAP_' + tap].findOne({})
+			keystone.db.models[req.params.mid + '-TAP_' + tap].findOne({'_t': req.params.mid + '-TAP_' + tap})
 					.sort({
 						'h.Sequence Number' : -1
 					}).exec(function(err, doc) {
