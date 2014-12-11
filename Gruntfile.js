@@ -27,6 +27,13 @@ module.exports = function(grunt) {
 			}
 		},
 
+		browserify: {
+	 	  mission: {
+      		    src: ['./public/js/view_missions.js'],
+		    dest: './public/js/viewmissionbundle.js',
+                  },
+    		},
+
 		jshint: {
 			options: {
 				reporter: require('jshint-stylish'),
@@ -105,6 +112,11 @@ module.exports = function(grunt) {
 		]);
 	});
 
+	grunt.registerTask('ify', function(target) {
+		grunt.task.run([
+			'browserify'
+		]);
+	});
 	//will start server without arguments
 	grunt.registerTask('default', ['serve']);
 	
