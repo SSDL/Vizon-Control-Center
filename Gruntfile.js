@@ -36,7 +36,7 @@ module.exports = function(grunt) {
 						 'models/**/*.js'
 			],
 			server: [
-				'./keystone.js'
+				'./vizon.js'
 			]
 		},
 
@@ -59,7 +59,7 @@ module.exports = function(grunt) {
 
 		nodemon: {
 			debug: {
-				script: 'keystone.js',
+				script: 'vizon.js',
 				options: {
 					nodeArgs: ['--debug'],
 					env: {
@@ -79,7 +79,7 @@ module.exports = function(grunt) {
 			},
 			express: {
 				files: [
-					'keystone.js',
+					'vizon.js',
 					'public/js/lib/**/*.{js,json}'
 				],
 				tasks: ['jshint:server', 'concurrent:dev']
