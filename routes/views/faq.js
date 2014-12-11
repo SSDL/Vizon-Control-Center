@@ -7,9 +7,9 @@ exports = module.exports = function(req, res) {
 
 	// locals.section is used to set the currently selected
 	// item in the header navigation.
-	locals.section = 'About';
+	locals.section = 'FAQ';
 	//
 	// Render the view
-	view.render('about', { currentUrl: req.path });
+	view.render('faq', { currentUrl: req.path });
 
 };

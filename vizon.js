@@ -56,7 +56,8 @@ keystone.set('locals', {
 // Load your project's Routes
 
 keystone.set('routes', require('./routes'));
-
+keystone.set('mandrill api key', process.env.MANDRILL_API_KEY);
+keystone.set('mandrill username', process.env.MANDRILL_USER);
 // Setup common locals for your emails. The following are required by Keystone's
 // default email templates, you may remove them if you're using your own.
 
@@ -102,6 +103,8 @@ keystone.set('nav', {
 	'ground-stations' : 'ground-stations',
 	'enquiries': 'enquiries',
 	'users': 'users',
+	'posts': ['posts','post-categories'],
+	'access logs': 'access-logs',
 });
 
 // Start Keystone to connect to your database and initialise the web server

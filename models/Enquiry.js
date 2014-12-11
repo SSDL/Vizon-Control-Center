@@ -46,10 +46,10 @@ Enquiry.schema.methods.sendNotificationEmail = function(callback) {
 		new keystone.Email('enquiry-notification').send({
 			to: admins,
 			from: {
-				name: 'Arthena',
-				email: 'contact@arthena.com'
+				name: 'Vizon',
+				email: 'contact@vizon.us'
 			},
-			subject: 'New Enquiry for Arthena',
+			subject: 'New Enquiry for Vizon',
 			enquiry: enqiury
 		}, callback);
 		
