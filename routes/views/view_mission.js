@@ -169,7 +169,7 @@ exports.cap = function(req, res, next){
   function logCAP(newdata) {
     var cap = req.body.cap;
     cap.h.s = newdata.s;
-    cap.td = null;
+   // cap.td = null;
     cap.h["Sequence Number"] = newdata.s;
     cap.h["Execution Time"] = newdata.xt_snap;
     cap.h.mid = parseInt(req.params.mid);
