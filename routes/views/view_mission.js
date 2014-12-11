@@ -35,6 +35,7 @@ exports.init = module.exports.init = function(req, res) {
       for (var i = 0; i < taps.length; i++) {
         temp[taps[i].ID] = taps[i].toObject();
       }
+      console.log(temp);
       outcome.tap_descs = temp;
       return callback(null, 'done');
     });
