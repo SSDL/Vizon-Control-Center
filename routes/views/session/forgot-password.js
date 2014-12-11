@@ -37,4 +37,4 @@ exports = module.exports = function(req, res) {
 	
 	view.render('session/forgot-password');
 	
-}
+};

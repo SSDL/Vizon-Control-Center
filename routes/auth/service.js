@@ -6,7 +6,7 @@ var services = {
 	facebook: require('../../lib/auth/facebook'),
 	google: require('../../lib/auth/google'),
 	twitter: require('../../lib/auth/twitter')
-}
+};
 
 exports = module.exports = function(req, res, next) {
 

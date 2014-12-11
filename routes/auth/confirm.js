@@ -38,18 +38,18 @@ exports = module.exports = function(req, res) {
 			console.log('[auth.confirm] - Successfully signed in.');
 			console.log('------------------------------------------------------------');
 			return res.redirect(req.cookies.target || '/me');
-		}
+		};
 		
 		var onFail = function(err) {
 			console.log('[auth.confirm] - Failed signing in.', err);
 			console.log('------------------------------------------------------------');
 			req.flash('error', 'Sorry, there was an issue signing you in, please try again.');
 			return res.redirect('/signin');
-		}
+		};
 		
 		keystone.session.signin(String(locals.existingUser._id), req, res, onSuccess, onFail);
 	
-	}
+	};
 	
 	// Function to check if a user already exists for this profile id (and sign them in)
 	var checkExisting = function(next) {
@@ -76,7 +76,7 @@ exports = module.exports = function(req, res) {
 				return next();
 			});
 	
-	}
+	};
 	
 	// Function to handle data confirmation process
 	var checkAuth = function() {
@@ -182,7 +182,7 @@ exports = module.exports = function(req, res) {
 						
 						accessToken: locals.authUser.accessToken,
 						refreshToken: locals.authUser.refreshToken
-					}
+					};
 					
 					// console.log('[auth.confirm] - New user data:', userData );
 					
@@ -222,7 +222,7 @@ exports = module.exports = function(req, res) {
 			}
 		});
 	
-	}
+	};
 	
 	view.on('init', function(next) {
 		return checkExisting(next);
@@ -238,4 +238,4 @@ exports = module.exports = function(req, res) {
 	
 	view.render('auth/confirm');
 	
-}
+};
