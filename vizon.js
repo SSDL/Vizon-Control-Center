@@ -103,6 +103,8 @@ keystone.set('nav', {
 	'ground-stations' : 'ground-stations',
 	'enquiries': 'enquiries',
 	'users': 'users',
+	'posts': ['posts','post-categories'],
+	'access logs': 'access-logs',
 });
 
 // Start Keystone to connect to your database and initialise the web server
