@@ -130,8 +130,10 @@ module.exports = function(app){
 	  descriptors[i] = descriptors[i].toJSON(); // needed to make the object purely JSON, no mongoose stuff
           
 	  for (var m in descriptors[i].missionId) {
-          	data.push({
-            	h: descriptors[i].missionId[m][descriptors[i].ID.split('_')[0] + "Header"],
+          	console.log(descriptors[i]);
+		data.push({
+            	l: descriptors[i].length,
+		h: descriptors[i].missionId[m][descriptors[i].ID.split('_')[0] + "Header"],
             	p: descriptors[i].package, 
           	});
           }

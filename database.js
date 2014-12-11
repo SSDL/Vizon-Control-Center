@@ -165,7 +165,7 @@ module.exports = function(ks){
 								header = mission.CAPHeader;
 							for(var prop in header) {
 								if(header[prop].split(',')[0] == 'TAP ID') continue;
-								else if(header[prop].split(',')[0] == 'CAP ID') continue;
+								//else if(header[prop].split(',')[0] == 'CAP ID') continue;
 								if(header[prop].split(',')[0] && isTAP) // if the property is an object with a fieldname property of its own
 									headerliteral[header[prop].split(',')[0]] = setupTAPSchemaLiteral2(header[prop]);
 								else if ( header[prop].split(',')[0] && isCAP) 
