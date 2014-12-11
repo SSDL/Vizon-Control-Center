@@ -20,5 +20,18 @@ CAP.add({
 	package: {type: Types.TextArray, initial: true}
 });
 
+CAP.schema.post('save', function(tap) {
+	CAP.model.populate(tap, 'missionId', function(err, data) {
+		data = data.toObject();
+		for (var k in data.missionId) {
+			//console.log("In here!", data.missionId[k]);
+			delete keystone.mongoose.connection.models[data.missionId[k].missionId + '-' + data.ID];
+		}
+		for (var k in data.missionId) {
+			keystone.mongoose.connection.funcs.loadPacketModel(data.missionId[k].missionId + '-' + data.ID);
+		}
+	});
+});
+
 CAP.defaultColumns = 'ID, name, length, missionId|20%';
 CAP.register();
