@@ -48,7 +48,6 @@ module.exports = function(app){
       	log.forEach( function(tap) {
       		// Change the .v thing.  Obsolete now.
 	        var ts = (new Date(tap.h.Timestamp.v).getTime());
-      		
       		series.push([ts, tap.p[tapinfo[1]].v]);
       	});
       	data.name = tapinfo[1];
@@ -56,7 +55,6 @@ module.exports = function(app){
       	socket.emit('querytimedata', data);
       });
     });
-    
   }
   
   // Begin authorization of the new groundstation socket connection. 

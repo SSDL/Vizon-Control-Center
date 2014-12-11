@@ -5,14 +5,8 @@
 
 $(function() {
   var EventEmitter = require('events').EventEmitter;
-  //var moment = require('moment');
-  //var _ = require('underscore');
-  //var app = require('keystone');
-  //var Backbone = require('backbone');
   var ee = new EventEmitter();
   var socket;
-  //app = false;
-  //app = app || {};
 	var app = {};
 
   app.MissionData = Backbone.Model.extend({
