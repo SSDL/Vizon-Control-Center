@@ -238,7 +238,7 @@ $(function() {
       app.headerView.model.set('status','Unauthorized');
     });
     socket.on('new-tap', function (data) {
-      ee.emitEvent('new-'+data);
+      ee.emit('new-'+data);
     });
   });
 },{"events":2}],2:[function(require,module,exports){
