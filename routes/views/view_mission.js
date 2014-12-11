@@ -170,6 +170,7 @@ exports.cap = function(req, res, next){
   function logCAP(newdata) {
     var cap = req.body.cap;
     cap.h.s = newdata.s;
+   // cap.td = null;
     cap.h["Sequence Number"] = newdata.s;
     cap.h["Execution Time"] = newdata.xt_snap;
     console.log(newdata);
@@ -180,8 +181,8 @@ exports.cap = function(req, res, next){
       if (err) {
         console.log(err);
       }
-			console.log("about to send out socket.emit", newcap);
-			keystone.listener.of('/gs').emit('cap', newcap);
+		//	console.log("about to send out socket.emit", newcap);
+		//	keystone.listener.of('/gs').emit('cap', newcap);
             
       //workflow.outcome.cap = newcap;
       //if(req.app.httpio)  req.app.httpio.of('/gs').emit('cap', newcap);

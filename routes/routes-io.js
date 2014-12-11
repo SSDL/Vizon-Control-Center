@@ -113,7 +113,8 @@ module.exports = function(app){
   
   function handleGSSocketConnection(socket) {
     socket.on('disconnect', function() {
-      utils.logText('GS ' + socket.accesslog.gsid, 'DISC'.yellow);
+      utils.logText('GS ', //  socket.accesslog.gsid,
+ 	'DISC'.yellow);
     });
     
     socket.on('descriptor-request', function(desc_typeid, callback) {
@@ -176,15 +177,19 @@ module.exports = function(app){
   function findCAPs(TAPrecord, socket) {
     //db.models.CAPlog.findOne( { '_t': new RegExp('^'+ TAPrecord.h.mid +'-', "i") }).exec( function(err, caps) {
     console.log("In findCAPs", TAPrecord);
-    db.models.CAPlog.find({'h.mid':TAPrecord.h.mid, 'td': null }).exec(function(err, caps){
+    db.models.CAPlog.find({ 'h.mid' : TAPrecord.h.mid, 'td': null }).exec(function(err, caps){
       for(var i in caps) {
       	console.log("In findCAPS looking for caps: ", caps);
         caps[i].td = new Date();
-        caps[i].save();
+        console.log(caps[i].save);
+	caps[i].save(function(err) {
+		if(err) 
+			console.log(err);
+	});
         var cap = caps[i].toObject();
         cap = { h: cap.h, p: cap.p };
         socket.emit('cap',cap);
-        logPacket(cap, 'CAP', 'to GS ' + socket.accesslog.gsid);
+        logPacket(cap, 'CAP', 'to GS ');// + socket.accesslog.gsid);
       }
     });
   }
