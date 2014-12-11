@@ -133,6 +133,7 @@ exports.tap = function(req, res) {
 					.sort({
 						'h.Sequence Number' : -1
 					}).exec(function(err, doc) {
+						console.log(doc);
 						callback(null, doc);
 					});
 		}, tapFinally);
