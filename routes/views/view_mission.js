@@ -52,7 +52,7 @@ exports.init = module.exports.init = function(req, res) {
         caps[i].header = outcome.mission.CAPHeader;
       }
       outcome.cap_descs = caps;
-      console.log(caps);
+      
       return callback(null, 'done');
     });
   };
@@ -70,7 +70,6 @@ exports.init = module.exports.init = function(req, res) {
         caps[i].header = outcome.mission.CAPHeader;
       }
       outcome.cap_descs = caps;
-      console.log(caps);
       view.render('view_mission', { 
       	data: outcome
     	});
@@ -106,6 +105,7 @@ exports.tap = function(req, res){
     res.send(output);
   }
   if(req.params.t === 'all') {
+  	console.log("ALL");
     keystone.db.models('TAPlog').distinct( '_t', { 'h.mid': req.params.mid } ).sort( { '_t': 1 } ).exec( function(err, taps) {
       async.map(taps, function(tap, callback){
         keystone.db.models('TAPlog').findOne( { 'h.mid': req.params.mid, '_t': req.params.mid + '-TAP_' + tap } ).sort( { '_t': -1 } ).exec( function(err, doc) {
@@ -116,7 +116,8 @@ exports.tap = function(req, res){
   } else {
     var taplist = req.params.t;
     async.map(taplist, function(tap, callback){
-      keystone.db.models[req.params.mid + '-TAP_' + tap].findOne({}).sort( { 'h.s': -1 } ).exec( function(err, doc) {
+      keystone.db.models[req.params.mid + '-TAP_' + tap].findOne({}).sort( { 'h.Sequence Number': -1 } ).exec( function(err, doc) {
+        console.log(doc);
         callback(null, doc);
       });
     }, tapFinally);
@@ -139,7 +140,6 @@ exports.cap = function(req, res, next){
         if (err) {
           return callback(err, null);
         }
-        console.log('cap', cap);
         outcome.s = (cap ? cap.toObject().h.s + 1 : 1);
         return callback(null, 'done');
 
@@ -152,7 +152,6 @@ exports.cap = function(req, res, next){
           return callback(err, null);
         }
         //console.log('tap', tap);
-        console.log(req.body.cap);
         outcome.xt_snap = (tap ? tap.getNewSNAPTime(req.body.cap.h.xt) : 0);
         return callback(null, 'done');
       });
@@ -170,18 +169,16 @@ exports.cap = function(req, res, next){
   function logCAP(newdata) {
     var cap = req.body.cap;
     cap.h.s = newdata.s;
+    cap.td = null;
     cap.h["Sequence Number"] = newdata.s;
     cap.h["Execution Time"] = newdata.xt_snap;
-    console.log(newdata);
     cap.h.mid = parseInt(req.params.mid);
-		console.log(req.params.mid + '-CAP_' + cap.h.t);
-		console.log(cap);
     keystone.db.models[req.params.mid + '-CAP_'+ cap.h.t].create(cap, function(err, newcap) {
       if (err) {
         console.log(err);
       }
-			console.log("about to send out socket.emit", newcap);
-			keystone.listener.of('/gs').emit('cap', newcap);
+			//console.log("about to send out socket.emit", newcap);
+			//keystone.listener.of('/gs').emit('cap', newcap);
             
       //workflow.outcome.cap = newcap;
       //if(req.app.httpio)  req.app.httpio.of('/gs').emit('cap', newcap);
