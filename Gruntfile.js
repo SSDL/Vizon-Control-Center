@@ -1,35 +1,124 @@
+'use strict()';
+
+var config= {
+	port: 80
+};
+
 module.exports = function(grunt) {
 
-  grunt.initConfig({
-    jshint: {
-      files: ['Gruntfile.js', 'src/**/*.js', 'test/**/*.js'],
-      options: {
-        globals: {
-          jQuery: true
-        }
-      }
-    },
-    watch: {
-      files: ['<%= jshint.files %>'],
-      tasks: ['jshint']
-    },
-    nodemon: {
-      dev: {
-        script: 'vizon.js',
-        options: {
-          ignore: [
-            'node_modules/**',
-            'public/**'
-          ],
-          ext: 'js'
-        }
-      }
-    }
-  });
+	// Load grunt tasks automatically
+	require('load-grunt-tasks')(grunt);
 
-  grunt.loadNpmTasks('grunt-contrib-jshint');
-  grunt.loadNpmTasks('grunt-contrib-watch');
-  grunt.loadNpmTasks('grunt-nodemon');
-  grunt.registerTask('default', ['jshint']);
+	// Time how long tasks take. Can help when optimizing build times
+	require('time-grunt')(grunt);
+
+	// Project configuration.
+	grunt.initConfig({
+		pkg: grunt.file.readJSON('package.json'),
+		express: {
+			options: {
+				port: config.port
+			},
+			dev: {
+				options: {
+					script: 'vizon.js',
+					debug: true
+				}
+			}
+		},
+
+		jshint: {
+			options: {
+				reporter: require('jshint-stylish'),
+				force: true
+			},
+			all: [ 'routes/**/*.js',
+						 'models/**/*.js'
+			],
+			server: [
+				'./keystone.js'
+			]
+		},
+
+		concurrent: {
+			dev: {
+				tasks: ['nodemon', 'node-inspector', 'watch'],
+				options: {
+					logConcurrentOutput: true
+				}
+			}
+		},
+
+		'node-inspector': {
+			custom: {
+				options: {
+					'web-host': 'localhost'
+				}
+			}
+		},
+
+		nodemon: {
+			debug: {
+				script: 'keystone.js',
+				options: {
+					nodeArgs: ['--debug'],
+					env: {
+						port: config.port
+					}
+				}
+			}
+		},
+
+		watch: {
+			js: {
+				files: [
+					'model/**/*.js',
+					'routes/**/*.js'
+				],
+				tasks: ['jshint:all']
+			},
+			express: {
+				files: [
+					'keystone.js',
+					'public/js/lib/**/*.{js,json}'
+				],
+				tasks: ['jshint:server', 'concurrent:dev']
+			},
+			livereload: {
+				files: [
+					'public/styles/**/*.css',
+					'public/styles/**/*.less',
+					'templates/**/*.jade',
+					'node_modules/keystone/templates/**/*.jade'
+				],
+				options: {
+					livereload: true
+				}
+			}
+		}
+	});
+
+	// load jshint
+	grunt.registerTask('lint', function(target) {
+		grunt.task.run([
+			'jshint'
+		]);
+	});
+
+	//will start server without arguments
+	grunt.registerTask('default', ['serve']);
+	
+	// default option to connect server
+	grunt.registerTask('serve', function(target) {
+		grunt.task.run([
+			'jshint',
+			'concurrent:dev'
+		]);
+	});
+
+	grunt.registerTask('server', function () {
+		grunt.log.warn('The `server` task has been deprecated. Use `grunt serve` to start a server.');
+		grunt.task.run(['serve:' + target]);
+	});
 
 };
