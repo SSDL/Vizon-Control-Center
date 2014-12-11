@@ -20,6 +20,7 @@ $(function() {
   app.TAP = Backbone.Model.extend({
     parse: function(response) {
     	console.log(response);
+    	console.log
       if (response[this.get('tapId')]) {
         response.tap = response[this.get('tapId')];
         response.tap_desc = app.mainView.model.get('tap_descs')['TAP_'+this.get('tapId')];
@@ -32,6 +33,7 @@ $(function() {
       return response;
     },
     url: function() {
+    	console.log('/mission/'+app.mainView.model.get('mission').missionId+'/tap/' + this.get('tapId'));
       return '/mission/'+app.mainView.model.get('mission').missionId+'/tap/' + this.get('tapId') + '/';
     }
   });

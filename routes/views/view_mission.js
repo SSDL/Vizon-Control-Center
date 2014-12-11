@@ -117,6 +117,7 @@ exports.tap = function(req, res){
     var taplist = req.params.t;
     async.map(taplist, function(tap, callback){
       keystone.db.models[req.params.mid + '-TAP_' + tap].findOne({}).sort( { 'h.Sequence Number': -1 } ).exec( function(err, doc) {
+        console.log(doc);
         callback(null, doc);
       });
     }, tapFinally);
