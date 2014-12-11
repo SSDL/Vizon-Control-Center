@@ -71,6 +71,7 @@ $(function() {
     template: _.template( $('#tmpl-raw').html() ),
     initialize: function() {
       var _this = this;
+      console.log(this, "hey", _this);
       this.listenTo(this.model, 'sync', this.render);
       console.log('new-TAP_'+this.model.get('tapId'));
       ee.addListener('new-TAP_'+this.model.get('tapId'), function(){
@@ -212,7 +213,7 @@ $(function() {
       if(this.model.get('tap_descs').TAP_2) { app.bustelemView = new app.TAPView({el: '#cmdecho', model: new app.TAP({tap: {}, tapId: 2})}); }
       if(this.model.get('tap_descs').TAP_3) { app.bustelemView = new app.TAPView({el: '#bustelem', model: new app.TAP({tap: {}, tapId: 3})}); }
       if(this.model.get('tap_descs').TAP_4) { app.lmrsttelemView = new app.TAPView({el: '#lmrsttelem', model: new app.TAP({tap: {}, tapId: 4})}); }
-      if(this.model.get('tap_descs').TAP_5) { app.lmrsttelemView = new app.TAPView({el: '#config', model: new app.TAP({tap: {}, tapId: 5})}); }
+      if(this.model.get('tap_descs').TAP_5) { app.config = new app.TAPView({el: '#config', model: new app.TAP({tap: {}, tapId: 5})}); }
       if(this.model.get('tap_descs').TAP_13) { app.gpsView = new app.TAPView({el: '#gps', model: new app.TAP({tap: {}, tapId: 13})}); }
     }
   });
