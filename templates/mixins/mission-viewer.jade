@@ -20,11 +20,9 @@ mixin mission-viewer-content()
 
 	.container
 		div.row
-			div#header
 			div.col-xs-6
 				div#status
 				div#status
-				
 				div#beacon
 				//
 					div#cmdecho
@@ -35,9 +33,9 @@ mixin mission-viewer-content()
 			div.col-xs-6
 				div#caps
 	
-		script(type='text/template', id='tmpl-header')
+		script(type='text/template', id='tmpl-head')
 			.container
-				div.page-header
+				div
 					div.pull-right
 						h1 Data Status
 							<% if(status.length) { %> - 

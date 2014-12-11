@@ -357,8 +357,8 @@ $(function() {
     model: app.CAP
   });
   app.HeaderView = Backbone.View.extend({
-    el: '#header',
-    template: _.template( $('#tmpl-header').html() ),
+    //el: '#header',
+    template: _.template( $('#tmpl-head').html() ),
     initialize: function() {
       this.model = app.mainView.model;
       this.listenTo(this.model, 'change', this.render);

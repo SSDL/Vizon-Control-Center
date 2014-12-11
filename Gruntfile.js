@@ -33,7 +33,7 @@ module.exports = function(grunt) {
 //			},
 //		},
 		browserify: {
-			'./public/js/view_missions.js': ['./public/js/viewmissionbundle.js']
+			'./public/js/viewmissionbundle.js': ['./public/js/view_missions.js']
 		},
 		jshint : {
 			options : {
@@ -120,7 +120,7 @@ module.exports = function(grunt) {
 
 	// default option to connect server
 	grunt.registerTask('serve', function(target) {
-		grunt.task.run([ 'jshint', 'concurrent:dev' ]);
+		grunt.task.run([ 'jshint', 'ify', 'concurrent:dev' ]);
 	});
 
 	grunt
