@@ -133,7 +133,7 @@ mixin mission-viewer-content()
 							span.output <%= 'never' %>
 					<% } else if(o && o.trim()[0] == '[') { %>
 					select.form-control(name!='<%= f %>')
-						<% var onew = o.trim().slice(1, o.trim().length-1).trim(); _.each(onew.split(' '), function(opt) { opt = opt.split(':');%>
+						<% var onew = o.trim().slice(1, o.trim().length-1).trim(); _.each(onew.split(';'), function(opt) { opt = opt.split(':');%>
 						option(value!='<%= parseInt(opt[1]) %>') <%= opt[1] %> - <%= opt[0] %>
 						<% }); %>
 					<% } else if ( elem !== "" ){ %>
