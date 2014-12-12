@@ -62,7 +62,7 @@ exports = module.exports = function(app) {
 	app.get('/mission/:mid', routes.views.view_mission.init);
 	app.get('/mission/:mid/tap/:t/', routes.views.view_mission.tap);
 	app.post('/mission/:mid/cap/', routes.views.view_mission.cap);
-	app.get('/gs/:ground-station', routes.views.view_ground_station);
+	app.get('/gs/:ground_station', routes.views.view_ground_station);
 
 	app.all('/signup', routes.views.session.signup);
 	app.all('/signin', routes.views.session.signin);

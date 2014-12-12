@@ -13,5 +13,6 @@ exports = module.exports = function(req, res) {
 	//console.log(view);
 	//view.query('missions', keystone.list('Mission').model.find().where('authorizedUsers').equals(req.user));
 	view.query('stations', keystone.list('GroundStation').model.find().where('authorizedUsers').equals(req.user));
+	console.log(locals);
 	view.render('ground-stations', {title: 'Ground Stations'});
 };

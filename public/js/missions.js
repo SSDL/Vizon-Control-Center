@@ -1,5 +1,5 @@
 $(function () {
-	
+	/*
 	var socket = io.connect('/web');
 	
 	socket.emit('querymissions');
@@ -18,5 +18,5 @@ $(function () {
 	  var variable = $(this).text();
 	  $("#missionddb")[0].innerText = variable;
 	});
-	
+	*/
 });

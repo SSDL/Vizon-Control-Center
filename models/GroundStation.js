@@ -17,7 +17,7 @@ GroundStation.add({
 	name: { type: String},
 	key: { type: String },
 	isActive: { type: Boolean },
-	AuthorizedUsers: { type: Types.Relationship, ref: 'User', index: true, many: true},
+	authorizedUsers: { type: Types.Relationship, ref: 'User', index: true, many: true},
 	location: {
 		lattitude: { type: String},
 		longitude: { type: String},

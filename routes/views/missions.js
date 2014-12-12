@@ -9,6 +9,8 @@ exports = module.exports = function(req, res) {
 	// item in the header navigation.
 	view.query('missions', keystone.list('Mission').model.find().where('authorizedUsers').equals(req.user));
 	locals.section = 'missions';
+	
+	console.log(locals);
 	// Render the view
 	view.render('missions', {title: 'Missions'});
 };
