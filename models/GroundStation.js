@@ -18,6 +18,11 @@ GroundStation.add({
 	key: { type: String },
 	isActive: { type: Boolean },
 	AuthorizedUsers: { type: Types.Relationship, ref: 'User', index: true, many: true},
+	location: {
+		lattitude: { type: String},
+		longitude: { type: String},
+		elevation:{ type: String },
+	},
 	content: {
 		summary: { type: Types.Html, wysiwyg: true, height: 150 },
 		extended: { type: Types.Html, wysiwyg: true, height: 400 }
