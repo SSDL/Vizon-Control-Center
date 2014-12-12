@@ -20,6 +20,9 @@ mixin mission-viewer-content()
 
 	.container
 		div.row
+			div#missionindicator
+			br
+		div.row.fontsize
 			div.col-xs-6
 				div#status
 				div#status
@@ -67,6 +70,7 @@ mixin mission-viewer-content()
 							<% } %>
 						<% }); %>
 						<% } %>
+						br
 	
 		script(type='text/template', id='tmpl-tap-dropdown')
 			<% _.each(tap_descs, function(tap_desc) { %>

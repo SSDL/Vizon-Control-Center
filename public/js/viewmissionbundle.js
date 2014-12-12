@@ -356,7 +356,7 @@ $(function() {
     model: app.CAP
   });
   app.HeaderView = Backbone.View.extend({
-    el: '#header',
+    el: '#missionindicator',
     template: _.template( $('#tmpl-header').html() ),
     initialize: function() {
       this.model = app.mainView.model;
