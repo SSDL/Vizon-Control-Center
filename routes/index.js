@@ -56,6 +56,7 @@ exports = module.exports = function(app) {
 	app.get('/how-vizon-works', routes.views.how_vizon_works);
 	app.get('/faq', routes.views.faq);
 	app.get('/partnerships', routes.views.partnerships);
+	app.get('/permissions', routes.views.permissions);
 
 	
 	app.get('/mission/:mid', routes.views.view_mission.init);

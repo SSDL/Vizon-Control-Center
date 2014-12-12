@@ -14,10 +14,15 @@ exports = module.exports = function(req, res) {
 		if (err || !ground_station) {
 			console.error(err);
 			res.redirect('errors/404');
-			next(err);
+			//next(err);
 			return;
 		}
-		//view.query('TAPS', keystone.list('TAPS').model.find().sort('name').limit(3));
+		else if (!(ground_station.AuthorizedUsers.indexOf(req.user._id) > -1)) {
+			console.error(err);
+			res.redirect('/permissions');
+			//next(err);
+			return;
+		}
 		view.render('view_ground_station', {
 			ground_station : ground_station
 		});

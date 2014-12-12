@@ -33,5 +33,5 @@ GroundStation.schema.virtual('content.full').get(function() {
 	return this.content.extended || this.content.brief;
 });
 
-GroundStation.defaultColumns = 'title, missionId|20%';
+GroundStation.defaultColumns = 'groundStationId|20%, name|20%, key|20%';
 GroundStation.register();
