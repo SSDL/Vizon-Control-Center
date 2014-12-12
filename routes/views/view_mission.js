@@ -18,11 +18,11 @@ exports.init = module.exports.init = function(req, res) {
 			if (err) {
 				return callback(err, null);
 			}
-			if (!(mission.AuthorizedUsers.indexOf(req.user._id) > -1)) {
+			/*if (!(mission.AuthorizedUsers.indexOf(req.user._id) > -1)) {
 				console.error(err);
 				res.redirect('/permissions');
 				return;
-			}
+			} */
 			outcome.mission = mission;
 			return callback(null, 'done');
 		});
