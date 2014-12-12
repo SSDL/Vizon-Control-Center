@@ -7,8 +7,11 @@ exports = module.exports = function(req, res) {
 
 	// locals.section is used to set the currently selected
 	// item in the header navigation.
-	view.query('ground_stations', keystone.list('GroundStation').model.find().where('authorizedUsers').equals(req.user));
+	//view.query('stations', keystone.list('GroundStation').model.find().where('authorizedUsers').equals(req.user));
 	locals.section = 'Ground Station';
 	// Render the view
-	view.render('ground_stations', {title: 'Ground Stations'});
+	//console.log(view);
+	//view.query('missions', keystone.list('Mission').model.find().where('authorizedUsers').equals(req.user));
+	view.query('stations', keystone.list('GroundStation').model.find().where('authorizedUsers').equals(req.user));
+	view.render('ground-stations', {title: 'Ground Stations'});
 };
