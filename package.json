@@ -23,7 +23,8 @@
     "source-map": "0.1.34",
     "underscore": "*",
     "events": "*",
-    "jquery-browserify": "*"
+    "jquery-browserify": "*",
+    "csv": "*"
   },
   "devDependencies": {
     "gulp": "~3.6.2",

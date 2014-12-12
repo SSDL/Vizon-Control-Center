@@ -4,6 +4,7 @@ block js
   script(src='/Highstock-2.0.4/js/highstock.js')
   script(src='/Highstock-2.0.4/js/modules/exporting.js')
   script(src='/socket.io/socket.io.js')
+  script(src='/js/export-csv/export-csv.js')
   script(src='/js/graph/graph.js')
   
 block content
@@ -11,24 +12,23 @@ block content
   br
   .btn-group
     button#missionddb.btn.btn-default.btn-primary.dropdown-toggle(type='button', data-toggle='dropdown')
-        | Select Mission
+        | Select Mission 
         span.caret
       ul#missiondd.dropdown-menu
   .btn-group
     button#dropdownMenu1.btn.btn-default.btn-primary.dropdown-toggle(type='button', data-toggle='dropdown')
-        | Select Data
+        | Select Data 
         span.caret
       ul#dropdown1.dropdown-menu
-        //
-          each descriptor in query
-            li(role='presentation', class='dropdown-header')= descriptor._id + ", " +  descriptor.n
-              each data, i in descriptor.p
-                if i >= 2 
-                  a(role='menuitem', tabindex='-1', href='#')= data.n
-  
+  .btn-group
+    button#scatterbutton.btn.btn-primary Scatter
+  .btn-group
+    button#exportbutton.btn.btn-primary
+      | Export 
+      span.glyphicon.glyphicon-export
   ul#selectedlist.list-group
     
 
   #graphcontainer(style='min-width: 310px; height: 400px; margin: 0 auto;')
-  button#exportbutton(type='button') Scatter
+  
 
