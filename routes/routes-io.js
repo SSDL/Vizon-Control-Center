@@ -36,6 +36,14 @@ module.exports = function(app){
   	    		}
   	    		taps.push(tap);
   	    	}
+  	    taps.sort(function(a, b) {
+  	    	if (a.ID > b.ID )
+  	    		return 1;
+  	    	if (b.ID < a.ID )
+  	    		return -1;
+  	    	else 
+  	    		return 0;
+  	    });
   	    socket.emit('querytaps', taps);
     		});
     	});

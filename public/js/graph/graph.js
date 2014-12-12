@@ -50,7 +50,7 @@ $(function () {
 	  var tap = $("#missionddb")[0].innerText.split(',')[0] + '-' + $(this).parent().contents()[0].wholeText.split(",")[0];
 	  var $newl = $( "<li class=list-group-item>" );
 	  $newl.text(variable);
-	  var $newb = $( "<button class=rmvbutton ><span class=\"glyphicon glyphicon-remove\">" );
+	  var $newb = $( "<button class=\"rmvbutton pull-right\" ><span class=\"glyphicon glyphicon-remove\" >" );
 	  $newl.append($newb);
 	  $("#selectedlist").append($newl);
 	  socket.emit('querytimedata', [tap, variable]);
@@ -80,23 +80,17 @@ $(function () {
 		title: {
 			text: 'Data'
 		},
-		
-		series: [],/*[{
-			name: 'Main Battery',
-			data: (function () {
-				var data = [], time = (new Date()).getTime(), i;
-				for (i = -999; i <= 0; i += 1) {
-					data.push([
-						time + i *1000000,
-						Math.random()*0.3 + 3.9
-					]);
-				}
-				return data;
-			}()),
-			tooltip: {
-				valueDecimals: 2,
-				valueSuffix: 'V'
-			}}],*/
+		navigator: {
+      series: {
+      	includeInCSVExport: false
+      }
+    },
+		exporting: {
+			csv: { 
+				itemDelimiter : ',' 
+			}
+		},
+		series: [],
 		rangeSelector: {
 			enabled: true,
 			buttons: [{
@@ -174,7 +168,7 @@ $(function () {
 
 	});
 	
-	$('#exportbutton').click(function() {
+	$('#scatterbutton').click(function() {
 		if ( this.innerHTML == 'Scatter') {
 			this.innerHTML = 'Line';
 			for (var i = 0; i < chart1.series.length; i++) {
@@ -191,4 +185,18 @@ $(function () {
 			}
 		}
 	});
+		
+	$('#exportbutton').click(function () {
+		var data = chart1.getCSV();
+		var a         = document.createElement('a');
+		a.href        = 'data:attachment/csv,' + encodeURIComponent(data);
+		a.target      = '_blank';
+		var date = new Date();
+		a.download    = $("#missionddb")[0].innerText.split(',')[0] + '-' + date.toISOString()	+ '.csv';
+
+		document.body.appendChild(a);
+		a.click();
+ //   console.log(chart1.getCSV());
+   // saveAs(chart1.getCSV(), 'test.csv');
+});
 });
