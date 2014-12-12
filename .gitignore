@@ -32,3 +32,6 @@ node_modules
 site.min.css
 nohup.out
 .DS_Store
+
+# file is generated at runtime
+*bundle.js
