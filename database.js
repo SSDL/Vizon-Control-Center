@@ -57,7 +57,7 @@ module.exports = function(ks){
 				if(desc.length > 3) { // verify that the property conv is an array
         	literal.v = Number(desc[2]); // the first element of conv is the linear shift
         	for(var i = 3; i < desc.length; i++) { // for the rest of the elements in conv
-          	literal.v += Number(desc[i]) * Math.pow(val, i) // determine the power and constant
+          	literal.v += Number(desc[i]) * Math.pow(val, i-2) // determine the power and constant
         	}
       	} else if(desc[2].trim() == 'hex') { // hex string
        		literal.v = '0x' + literal.v;
