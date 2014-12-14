@@ -9,6 +9,11 @@ exports = module.exports = function(req, res) {
 	// item in the header navigation.
 	locals.section = 'visualizer';
 
+	// locals.section is used to set the currently selected
+	// item in the header navigation.
+	view.query('missions', keystone.list('Mission').model.find().where('authorizedUsers').equals(req.user));
+	locals.section = 'missions';
+	
 	// Render the view
 	view.render('graph', {title: 'Visualizer'});
 

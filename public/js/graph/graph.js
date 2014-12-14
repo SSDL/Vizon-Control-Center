@@ -2,7 +2,7 @@ $(function () {
 	
 	var socket = io.connect('/web');
 	
-	socket.emit('querymissions');
+	/*socket.emit('querymissions');
 	
 	socket.on('querymissions', function(data) {
 		for (var k in data) {
@@ -13,7 +13,7 @@ $(function () {
 			$("#missiondd").append($newli);
 		}
 	});
-	
+	*/
 	socket.on('querytaps', function(data) {
 	  for ( var k in data ) {
 	    var $newli = $( "<li role=presentation class=dropdown-header>");
@@ -196,7 +196,5 @@ $(function () {
 
 		document.body.appendChild(a);
 		a.click();
- //   console.log(chart1.getCSV());
-   // saveAs(chart1.getCSV(), 'test.csv');
-});
+	});
 });
