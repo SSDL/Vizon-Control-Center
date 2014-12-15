@@ -22,7 +22,22 @@ Mission.add({
 
 Mission.relationship({ path: 'taps', ref: 'TAP', refPath: 'missionId'});
 Mission.relationship({ path: 'caps', ref: 'CAP', refPath: 'missionId'});
-
+Mission.schema.post('save', function(mission) {
+	keystone.list('TAP').model.where('missionId', mission._id).exec( function(err, taps) {
+		for (var k in taps) {
+			taps[k] = taps[k].toObject();
+			delete keystone.mongoose.connection.models[mission.missionId + '-' + taps[k].ID];
+		}
+		keystone.mongoose.connection.funcs.loadPacketModel(mission.missionId + '-' + taps[0].ID.split('_')[0]);
+	});
+	keystone.list('CAP').model.where('missionId', mission._id).exec( function(err, caps) {
+		for (var k in caps) {
+			caps[k] = caps[k].toObject();
+			delete keystone.mongoose.connection.models[mission.missionId + '-' + caps[k].ID];
+		}
+		keystone.mongoose.connection.funcs.loadPacketModel(mission.missionId + '-' + caps[0].ID.split('_')[0]);
+	});
+});
 Mission.schema.methods.taps = function(cb){
   return keystone.list('TAP').model.find()
     .where('missionId', this.id )

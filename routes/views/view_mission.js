@@ -198,6 +198,5 @@ exports.cap = function(req, res, next) {
 				}
 			});
 	}
-
 	findTAP();
 };
