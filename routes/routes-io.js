@@ -133,7 +133,7 @@ module.exports = function(app){
         return;
       }
       utils.logText('Descriptor request for ' + desc_typeid);
-      db.funcs.loadPacketDescriptors2(desc_typeid, function(err,descriptors){
+      db.funcs.loadPacketDescriptors(desc_typeid, function(err,descriptors){
 	for(var i in descriptors) {
 	  descriptors[i] = descriptors[i].toJSON(); // needed to make the object
 												// purely JSON, no mongoose
