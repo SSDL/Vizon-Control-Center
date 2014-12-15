@@ -23,8 +23,8 @@ module.exports = function(app){
     });
     
     socket.on('querytaps', function(data) {
-    	app.list('Mission').model.find({ missionId: data}, '_id', function(err, data) {
-    		app.list('TAP').model.where('missionId', data[0]._id).exec(function(err, data) {
+    	app.list('Mission').model.findOne({ missionId: data}, '_id', function(err, mission) {
+    		app.list('TAP').model.where('missionId', mission._id).exec(function(err, data) {
     			taps = [];
     			for ( var k in data ) {
     				tap = {};

@@ -8,28 +8,28 @@ exports.init = module.exports.init = function(req, res) {
 	// locals.section is used to set the currently selected
 	// item in the header navigation.
 	locals.section = 'Missions';
-	var mission_slug = req.params.mid;
 	var outcome = {};
-	mid = mission_slug;
 	var getMissionInfo = function(callback) {
 		keystone.list('Mission').model.findOne({
-			'missionId' : mid
+			'missionId' : req.params.mid
 		}).exec(function(err, mission) {
 			if (err) {
 				return callback(err, null);
 			}
-			/*if (!(mission.AuthorizedUsers.indexOf(req.user._id) > -1)) {
+			if (!(mission.authorizedUsers.indexOf(req.user._id) > -1)) {
 				console.error(err);
 				res.redirect('/permissions');
+				outcome.mission = mission;
 				return;
-			} */
+			} 
 			outcome.mission = mission;
 			return callback(null, 'done');
 		});
 	};
 
 	var getTAPDescriptors = function(callback) {
-		keystone.list('TAP').model.where('ID').regex(/TAP_\d+/).sort('ID')
+	  keystone.list('Mission').model.findOne({ missionId: req.params.mid}, '_id', function(err, mission) {
+			keystone.list('TAP').model.where('missionId', mission._id).where('ID').regex(/TAP_\d+/).sort('ID')
 				.select('name ID').exec(
 						function(err, taps) {
 							if (err) {
@@ -45,9 +45,13 @@ exports.init = module.exports.init = function(req, res) {
 							outcome.tap_descs = temp;
 							return callback(null, 'done');
 						});
-	};
+					});
+				
+	}
+	
 	var getCAPDescriptors = function(callback) {
-		keystone.list('CAP').model.where('ID').regex(/CAP_\d+/).sort('ID')
+		keystone.list('Mission').model.findOne({ missionId: req.params.mid}, '_id', function(err, mission) {
+			keystone.list('CAP').model.where('missionId', mission._id).where('ID').regex(/CAP_\d+/).sort('ID')
 				.exec(
 						function(err, caps) {
 							if (err) {
@@ -64,31 +68,17 @@ exports.init = module.exports.init = function(req, res) {
 
 							return callback(null, 'done');
 						});
-	};
-
-	function asyncFinally(err, results) {
-		keystone.list('CAP').model.where('ID').regex(/CAP_\d+/).sort('ID')
-				.exec(
-						function(err, caps) {
-							if (err) {
-								return callback(err, null);
-							}
-							caps.sort(function(a, b) {
-								return a.toObject().ID.split('_')[1] - b.toObject().ID.split('_')[1];
-							});
-							for (var i = 0; i < caps.length; i++) {
-								caps[i] = caps[i].toObject();
-								caps[i].header = outcome.mission.CAPHeader;
-							}
-							outcome.cap_descs = caps;
-							view.render('view_mission', {
-								data : outcome
-							});
-						});
-
+				});
 	}
 
-	async.parallel([ getMissionInfo, getTAPDescriptors ], asyncFinally);
+	
+	function asyncFinally(err, results) {
+		view.render('view_mission', {
+			data : outcome
+		});
+	}
+	
+	async.parallel([getCAPDescriptors, getMissionInfo, getTAPDescriptors ], asyncFinally);
 };
 
 /*
@@ -146,13 +136,6 @@ exports.tap = function(req, res) {
 };
 
 exports.cap = function(req, res, next) {
-	// var workflow = req.app.utility.workflow(req, res);
-	// console.log(workflow);
-	// workflow.on('validate', function() {
-	// workflow.emit('findTAP');
-	// });
-
-	// workflow.on('findTAP', function() {
 	function findTAP() {
 		var outcome = {};
 
@@ -185,7 +168,6 @@ exports.cap = function(req, res, next) {
 						if (err) {
 							return callback(err, null);
 						}
-						// console.log('tap', tap);
 						outcome.xt_snap = (tap ? tap
 								.getNewSNAPTime(req.body.cap.h.xt) : 0);
 						return callback(null, 'done');
@@ -210,20 +192,11 @@ exports.cap = function(req, res, next) {
 		cap.h["Execution Time"] = newdata.xt_snap;
 		cap.h.mid = parseInt(req.params.mid);
 		keystone.db.models[req.params.mid + '-CAP_' + cap.h.t].create(cap,
-				function(err, newcap) {
-					if (err) {
-						console.log(err);
-					}
-					// console.log("about to send out socket.emit", newcap);
-					// keystone.listener.of('/gs').emit('cap', newcap);
-
-					// workflow.outcome.cap = newcap;
-					// if(req.app.httpio) req.app.httpio.of('/gs').emit('cap',
-					// newcap);
-					// if(req.app.httpsio) req.app.httpsio.of('/gs').emit('cap',
-					// newcap);
-					// return workflow.emit('response');
-				});
+			function(err, newcap) {
+				if (err) {
+					console.log(err);
+				}
+			});
 	}
 
 	findTAP();
