@@ -13,7 +13,7 @@ var CAP = new keystone.List('CAP', {
 });
 
 CAP.add({
-	ID: { type: String, required: true },
+	ID: { type: String, required: true, match: [/CAP_\d+$/, 'ID Format must be CAP_#'] },
 	missionId: { type: Types.Relationship, ref: 'Mission', index: true, many: true, initial: true , required: true},
 	name: { type: String, initial : true },
 	length: { type: Number, required: true, initial: true },
