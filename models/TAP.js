@@ -24,7 +24,6 @@ TAP.add({
 TAP.schema.pre('save', function(next) {
 	tap = this;
 	TAP.model.find({'ID' : tap.ID, 'missionId': {$in:tap.missionId}} , function(err, taps) {
-		console.log(taps);
 		for (var k in taps) {
 			if (!taps[k]._id.equals(tap._id)) {
 				var err = new Error(tap.ID + ' already exists for one of the specified Missions');
