@@ -1,13 +1,14 @@
 mixin mission-viewer-js()
 	script(src='/js/lib/jquery/jquery-1.11.0.min.js')
 	script(src='/js/lib/bootstrap/bootstrap-3.1.0.min.js')
-	script(src='/js/lib/bootstrap-datetimepicker/js/bootstrap-datetimepicker.min.js')
+	script(src='/js/lib/bootstrap-datetimepicker/js/bootstrap-datetimepicker.js')
 	script(src='/js/underscore/underscore.js')
 	script(src='/js/backbone/backbone.js')
 	script(src='/js/moment/moment.js')
 	script(src='/js/viewmissionbundle.js')
 	script(src='/socket.io/socket.io.js')
-	
+	link(rel='stylesheet', type="text/css", href='http://eternicode.github.io/bootstrap-datepicker/bootstrap-datepicker/css/datepicker3.css')
+  
 mixin mission-viewer-content()
 
 	style(type='text/css').
