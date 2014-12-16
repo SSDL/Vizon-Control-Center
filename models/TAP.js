@@ -27,7 +27,7 @@ TAP.schema.pre('save', function(next) {
 		console.log(taps);
 		for (var k in taps) {
 			if (!taps[k]._id.equals(tap._id)) {
-				var err = new Error(tap.ID + ' already exists for the specified Mission');
+				var err = new Error(tap.ID + ' already exists for one of the specified Missions');
 				next(err);
 			}
 		}

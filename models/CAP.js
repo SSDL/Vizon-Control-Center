@@ -20,6 +20,19 @@ CAP.add({
 	package: {type: Types.TextArray, initial: false}
 });
 
+CAP.schema.pre('save', function(next) {
+	cap = this;
+	CAP.model.find({'ID' : cap.ID, 'missionId': {$in:cap.missionId}} , function(err, caps) {
+		for (var k in caps) {
+			if (!caps[k]._id.equals(cap._id)) {
+				var err = new Error(cap.ID + ' already exists for one of the specified Missions');
+				next(err);
+			}
+		}
+		next();
+	});
+});
+
 CAP.schema.post('save', function(tap) {
 	CAP.model.populate(tap, 'missionId', function(err, data) {
 		data = data.toObject();
