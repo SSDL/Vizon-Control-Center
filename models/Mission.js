@@ -13,7 +13,7 @@ var Mission = new keystone.List('Mission', {
 });
 
 Mission.add({
-	missionId: { type: String, required: true, initial: true},
+	missionId: { type: String, required: true, initial: true, match: [/^\d+$/, 'ID Format must be ###']},
 	name: { type: String, required: false },
 	authorizedUsers: { type: Types.Relationship, ref: 'User', index: true, many: true},
 	TAPHeader: {type: Types.TextArray},
@@ -28,14 +28,16 @@ Mission.schema.post('save', function(mission) {
 			taps[k] = taps[k].toObject();
 			delete keystone.mongoose.connection.models[mission.missionId + '-' + taps[k].ID];
 		}
-		keystone.mongoose.connection.funcs.loadPacketModel(mission.missionId + '-' + taps[0].ID.split('_')[0]);
+		if ( taps[0] )
+			keystone.mongoose.connection.funcs.loadPacketModel(mission.missionId + '-' + taps[0].ID.split('_')[0]);
 	});
 	keystone.list('CAP').model.where('missionId', mission._id).exec( function(err, caps) {
 		for (var k in caps) {
 			caps[k] = caps[k].toObject();
 			delete keystone.mongoose.connection.models[mission.missionId + '-' + caps[k].ID];
 		}
-		keystone.mongoose.connection.funcs.loadPacketModel(mission.missionId + '-' + caps[0].ID.split('_')[0]);
+		if ( caps[0] ) 
+			keystone.mongoose.connection.funcs.loadPacketModel(mission.missionId + '-' + caps[0].ID.split('_')[0]);
 	});
 });
 Mission.schema.methods.taps = function(cb){
