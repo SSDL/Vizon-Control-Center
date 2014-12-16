@@ -18,7 +18,20 @@ TAP.add({
 	missionId: { type: Types.Relationship, ref: 'Mission', index: true, many: true, initial: true , required: true},
 	name: { type: String, required: true, initial: true },
 	length: { type: Number, required: true, initial: true },
-	package: {type: Types.TextArray, required: true, initial: true}
+	package: {type: Types.TextArray, required: false, initial: false}
+});
+
+TAP.schema.pre('save', function(next) {
+	tap = this;
+	TAP.model.find({'ID' : tap.ID, 'missionId': {$in:tap.missionId}} , function(err, taps) {
+		for (var k in taps) {
+			if (!taps[k]._id.equals(tap._id)) {
+				var err = new Error(tap.ID + ' already exists for one of the specified Missions');
+				next(err);
+			}
+		}
+		next();
+	});
 });
 
 TAP.schema.post('save', function(tap) {
