@@ -218,6 +218,7 @@ module.exports = function(ks){
 												
 							// Create the model						
 							db.model(descriptor.missionId[m].missionId  + '-' + descriptor.ID, newSchema);
+							ks.listener.of('/gs').emit('removedesc', descriptor.missionId[m].missionId  + '-' + descriptor.ID);
 							utils.logText(descriptor.missionId[m].missionId  + '-' + descriptor.ID + ' ' + descriptor.name, 'LOAD'.cyan);
 						}
           }
