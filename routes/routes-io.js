@@ -50,7 +50,7 @@ module.exports = function(app){
     });
     
     socket.on('querytimedata', function(tapinfo) {
-      var query = db.models[tapinfo[0]].find({}, function(err, log) {
+      var query = db.models[tapinfo[0]].find({'_t':tapinfo[0]}).sort({'h.Sequence Number':-1}).exec(function(err, log) {
       	var data = {};
       	var series = [];
       	log.forEach( function(tap) {
