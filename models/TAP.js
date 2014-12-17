@@ -14,18 +14,30 @@ var TAP = new keystone.List('TAP', {
 });
 
 TAP.add({
-	ID: { type: String, required: true },
+	ID: { type: String, required: true, match: [/TAP_\d+$/, 'ID Format must be TAP_#'] },
 	missionId: { type: Types.Relationship, ref: 'Mission', index: true, many: true, initial: true , required: true},
 	name: { type: String, required: true, initial: true },
 	length: { type: Number, required: true, initial: true },
 	package: {type: Types.Grid, required: false, initial: false, length: 4}
 });
 
+TAP.schema.pre('save', function(next) {
+	tap = this;
+	TAP.model.find({'ID' : tap.ID, 'missionId': {$in:tap.missionId}} , function(err, taps) {
+		for (var k in taps) {
+			if (!taps[k]._id.equals(tap._id)) {
+				var err = new Error(tap.ID + ' already exists for one of the specified Missions');
+				next(err);
+			}
+		}
+		next();
+	});
+});
+
 TAP.schema.post('save', function(tap) {
 	TAP.model.populate(tap, 'missionId', function(err, data) {
 		data = data.toObject();
 		for (var k in data.missionId) {
-			//console.log("In here!", data.missionId[k]);
 			delete keystone.mongoose.connection.models[data.missionId[k].missionId + '-' + data.ID];
 		}
 		for (var i in data.missionId) {

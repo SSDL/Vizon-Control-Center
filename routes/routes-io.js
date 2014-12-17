@@ -23,8 +23,8 @@ module.exports = function(app){
     });
     
     socket.on('querytaps', function(data) {
-    	app.list('Mission').model.find({ missionId: data}, '_id', function(err, data) {
-    		app.list('TAP').model.where('missionId', data[0]._id).exec(function(err, data) {
+    	app.list('Mission').model.findOne({ missionId: data}, '_id', function(err, mission) {
+    		app.list('TAP').model.where('missionId', mission._id).exec(function(err, data) {
     			taps = [];
     			for ( var k in data ) {
     				tap = {};
@@ -50,7 +50,7 @@ module.exports = function(app){
     });
     
     socket.on('querytimedata', function(tapinfo) {
-      var query = db.models[tapinfo[0]].find({}, function(err, log) {
+      var query = db.models[tapinfo[0]].find({'_t':tapinfo[0]}).sort({'h.Sequence Number':-1}).exec(function(err, log) {
       	var data = {};
       	var series = [];
       	log.forEach( function(tap) {
@@ -133,7 +133,7 @@ module.exports = function(app){
         return;
       }
       utils.logText('Descriptor request for ' + desc_typeid);
-      db.funcs.loadPacketDescriptors2(desc_typeid, function(err,descriptors){
+      db.funcs.loadPacketDescriptors(desc_typeid, function(err,descriptors){
 	for(var i in descriptors) {
 	  descriptors[i] = descriptors[i].toJSON(); // needed to make the object
 												// purely JSON, no mongoose
