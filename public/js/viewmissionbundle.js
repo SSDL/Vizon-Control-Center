@@ -536,16 +536,23 @@ $(function() {
     	Object.keys(taps).forEach(function(desc, index) {
     		taparr[index] = taps[desc];
     	});
-      this.collection = new app.TAPdescCollection( taparr );
+      this.collection = taparr;
+      var checkstatus = true;
       this.render();
+      var cl = this;
+      $('#toggleall').prop('checked', true);
+    	$.each($('#checklistitems').children('.toggle'), function(index, input) {
+    		if ( $(input).is(':checked') != checkstatus ) {
+    			$(input).prop('checked', checkstatus);
+    			cl.toggle($(input));
+    		}
+    	});
     },
     render: function() {
-      this.$el.html( this.template({ tap_descs: this.collection.models }));
+      this.$el.html( this.template({ tap_descs: this.collection }));
     },
     toggle: function(target) {
-    	console.log(target);
     	var tapname = $(target).next("label").text();
-    	console.log(tapname);
     	if ( $(target).is(':checked') ) {
     		if(app.mainView.model.get('tap_descs')[tapname]) { 
     			app[tapname] = new app.TAPView({el: '#' + tapname, model: new app.TAP({tap: {}, tapId: parseInt(tapname.split('_')[1])})}); 
@@ -558,10 +565,7 @@ $(function() {
     	var checkstatus =  $(target.currentTarget).is(':checked');
     	$.each($('#checklistitems').children('.toggle'), function(index, input) {
     		if ( $(input).is(':checked') != checkstatus ) {
-    			console.log("hello");
     			$(input).prop('checked', checkstatus);
-    			console.log(this);
-    			console.log(this.toggle);
     			app.checkList.toggle($(input));
     		}
     	});

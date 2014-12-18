@@ -232,11 +232,20 @@ $(function() {
     	Object.keys(taps).forEach(function(desc, index) {
     		taparr[index] = taps[desc];
     	});
-      this.collection = new app.TAPdescCollection( taparr );
+      this.collection = taparr;
+      var checkstatus = true;
       this.render();
+      var cl = this;
+      $('#toggleall').prop('checked', true);
+    	$.each($('#checklistitems').children('.toggle'), function(index, input) {
+    		if ( $(input).is(':checked') != checkstatus ) {
+    			$(input).prop('checked', checkstatus);
+    			cl.toggle($(input));
+    		}
+    	});
     },
     render: function() {
-      this.$el.html( this.template({ tap_descs: this.collection.models }));
+      this.$el.html( this.template({ tap_descs: this.collection }));
     },
     toggle: function(target) {
     	var tapname = $(target).next("label").text();

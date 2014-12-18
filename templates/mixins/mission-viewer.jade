@@ -56,7 +56,7 @@ mixin mission-viewer-content()
 					ul#checklistitems
 						<% _.each(tap_descs, function(tap_desc) {%>
 						input.toggle(type='checkbox')
-						label <%= tap_desc.attributes.ID %>
+						label <%= tap_desc.ID %>
 						<% }); %>
 	
 		script(type='text/template', id='tmpl-raw')
