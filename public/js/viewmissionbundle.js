@@ -340,6 +340,20 @@ $(function() {
     }
   });
 
+	app.TAPdesc = Backbone.Model.extend({
+    defaults: {
+      tap: {
+        h: {},
+        p: {},
+      },
+			checked : false
+    }
+  });
+  
+	app.TAPdescCollection = Backbone.Collection.extend({
+    model: app.TAPdesc
+  });
+  
   app.CAP = Backbone.Model.extend({
     defaults: {
       cap: {
@@ -355,6 +369,7 @@ $(function() {
   app.CAPCollection = Backbone.Collection.extend({
     model: app.CAP
   });
+  
   app.HeaderView = Backbone.View.extend({
     el: '#missionindicator',
     template: _.template( $('#tmpl-header').html() ),
@@ -380,6 +395,11 @@ $(function() {
     },
     render: function() {
       this.$el.html(this.template( this.model.attributes ));
+    },
+    remove: function() {
+    	this.$el.empty().off();
+    	this.stopListening();
+    	return this;
     }
   });
 
@@ -469,7 +489,7 @@ $(function() {
 				}
       });
       cap.h.t = this.cap_desc.ID.split('_')[1];
-      var field =  _this.$el.find('[name="xt"]');
+      var field =  _this.$el.find('[name="Execution Time"]');
       val = (field.val() === '' ? moment() : moment(field.val())); // moment format not used but found at http://momentjs.com/docs/#/parsing/string-format/
       if(!val.isValid()) { val = moment(field.val()); }
       cap.h.xt = val.valueOf();
@@ -498,7 +518,41 @@ $(function() {
       this.$el.html( this.template({ cap_descs: this.collection.models }));
     },
     show: function() {
-      $('#cap').empty().append(this.views[$('#cap_selector').prop('selectedIndex')-1].render().el);
+    	$('#cap').empty().append(this.views[$('#cap_selector').prop('selectedIndex')-1].render().el);
+    }
+  });
+  
+  app.CheckListView = Backbone.View.extend({
+  	el: '#checklist',
+    template: _.template( $('#tmpl-check').html() ),
+    events: {
+      "click .toggle"   : "toggleShow"
+    },
+    initialize: function() {
+    	var taps = app.mainView.model.get('tap_descs');
+    	var taparr = [];
+    	Object.keys(taps).forEach(function(desc, index) {
+    		taparr[index] = taps[desc];
+    	});
+      this.collection = new app.TAPdescCollection( taparr );
+      this.render();
+    },
+    render: function() {
+      this.$el.html( this.template({ tap_descs: this.collection.models }));
+    },
+    toggleShow: function(target) {
+    	console.log($(target.currentTarget).is(':checked'));
+    	var tapname = $(target.currentTarget).next("label").text();
+    	console.log($(target.currentTarget).next("label").text());
+    	if ( $(target.currentTarget).is(':checked') ) {
+    		console.log("hello2");
+    		if(app.mainView.model.get('tap_descs')[tapname]) { 
+    			app[tapname] = new app.TAPView({el: '#' + tapname, model: new app.TAP({tap: {}, tapId: parseInt(tapname.split('_')[1])})}); 
+    		}
+    	} else {
+    		console.log("hello");
+    		app[tapname].remove();
+    	}
     }
   });
 
@@ -507,12 +561,13 @@ $(function() {
     initialize: function() {
       app.mainView = this;
       this.model = new app.MissionData( JSON.parse( unescape($('#data-mission').html()) ) );
-      if(this.model.get('tap_descs').TAP_1) { app.beaconView = new app.TAPView({el: '#beacon', model: new app.TAP({tap: {}, tapId: 1})}); }
-      if(this.model.get('tap_descs').TAP_2) { app.bustelemView = new app.TAPView({el: '#cmdecho', model: new app.TAP({tap: {}, tapId: 2})}); }
+      //if(this.model.get('tap_descs').TAP_1) { app.beaconView = new app.TAPView({el: '#beacon', model: new app.TAP({tap: {}, tapId: 1})}); }
+      /*if(this.model.get('tap_descs').TAP_2) { app.bustelemView = new app.TAPView({el: '#cmdecho', model: new app.TAP({tap: {}, tapId: 2})}); }
       if(this.model.get('tap_descs').TAP_3) { app.bustelemView = new app.TAPView({el: '#bustelem', model: new app.TAP({tap: {}, tapId: 3})}); }
       if(this.model.get('tap_descs').TAP_4) { app.lmrsttelemView = new app.TAPView({el: '#lmrsttelem', model: new app.TAP({tap: {}, tapId: 4})}); }
       if(this.model.get('tap_descs').TAP_5) { app.config = new app.TAPView({el: '#config', model: new app.TAP({tap: {}, tapId: 5})}); }
       if(this.model.get('tap_descs').TAP_13) { app.gpsView = new app.TAPView({el: '#gps', model: new app.TAP({tap: {}, tapId: 13})}); }
+   */
     }
   });
 
@@ -520,7 +575,9 @@ $(function() {
     app.mainView = new app.MainView();
     app.headerView = new app.HeaderView();
     app.capCollectionView = new app.CAPCollectionView();
+    app.checkList = new app.CheckListView();
 		});
+		
     socket = io.connect('/web');
     socket.on('connect', function () {
       socket.emit('join-mid',app.mainView.model.get('mission').missionId);
