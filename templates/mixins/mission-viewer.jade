@@ -51,9 +51,8 @@ mixin mission-viewer-content()
 		script(type='text/template', id='tmpl-check')
 			fieldset
 				div.control-group
-					//
-						input#toggleall(type='checkbox')
-						label(for='toggleall') Show All
+					input#toggleall(type='checkbox')
+					label(for='toggleall') Show All
 					ul#checklistitems
 						<% _.each(tap_descs, function(tap_desc) {%>
 						input.toggle(type='checkbox')

@@ -347,7 +347,7 @@ $(function() {
         p: {},
       },
 			checked : false
-    }
+		}
   });
   
 	app.TAPdescCollection = Backbone.Collection.extend({
@@ -522,11 +522,13 @@ $(function() {
     }
   });
   
+ 
   app.CheckListView = Backbone.View.extend({
   	el: '#checklist',
     template: _.template( $('#tmpl-check').html() ),
     events: {
-      "click .toggle"   : "toggleShow"
+      "click .toggle"   : "toggleShow",
+      "click #toggleall": "toggleAllComplete"
     },
     initialize: function() {
     	var taps = app.mainView.model.get('tap_descs');
@@ -540,19 +542,32 @@ $(function() {
     render: function() {
       this.$el.html( this.template({ tap_descs: this.collection.models }));
     },
-    toggleShow: function(target) {
-    	console.log($(target.currentTarget).is(':checked'));
-    	var tapname = $(target.currentTarget).next("label").text();
-    	console.log($(target.currentTarget).next("label").text());
-    	if ( $(target.currentTarget).is(':checked') ) {
-    		console.log("hello2");
+    toggle: function(target) {
+    	console.log(target);
+    	var tapname = $(target).next("label").text();
+    	console.log(tapname);
+    	if ( $(target).is(':checked') ) {
     		if(app.mainView.model.get('tap_descs')[tapname]) { 
     			app[tapname] = new app.TAPView({el: '#' + tapname, model: new app.TAP({tap: {}, tapId: parseInt(tapname.split('_')[1])})}); 
     		}
     	} else {
-    		console.log("hello");
     		app[tapname].remove();
     	}
+    },
+    toggleAllComplete: function(target) {
+    	var checkstatus =  $(target.currentTarget).is(':checked');
+    	$.each($('#checklistitems').children('.toggle'), function(index, input) {
+    		if ( $(input).is(':checked') != checkstatus ) {
+    			console.log("hello");
+    			$(input).prop('checked', checkstatus);
+    			console.log(this);
+    			console.log(this.toggle);
+    			app.checkList.toggle($(input));
+    		}
+    	});
+    },
+    toggleShow: function(target) {
+    	this.toggle($(target.currentTarget));
     }
   });
 
@@ -561,13 +576,6 @@ $(function() {
     initialize: function() {
       app.mainView = this;
       this.model = new app.MissionData( JSON.parse( unescape($('#data-mission').html()) ) );
-      //if(this.model.get('tap_descs').TAP_1) { app.beaconView = new app.TAPView({el: '#beacon', model: new app.TAP({tap: {}, tapId: 1})}); }
-      /*if(this.model.get('tap_descs').TAP_2) { app.bustelemView = new app.TAPView({el: '#cmdecho', model: new app.TAP({tap: {}, tapId: 2})}); }
-      if(this.model.get('tap_descs').TAP_3) { app.bustelemView = new app.TAPView({el: '#bustelem', model: new app.TAP({tap: {}, tapId: 3})}); }
-      if(this.model.get('tap_descs').TAP_4) { app.lmrsttelemView = new app.TAPView({el: '#lmrsttelem', model: new app.TAP({tap: {}, tapId: 4})}); }
-      if(this.model.get('tap_descs').TAP_5) { app.config = new app.TAPView({el: '#config', model: new app.TAP({tap: {}, tapId: 5})}); }
-      if(this.model.get('tap_descs').TAP_13) { app.gpsView = new app.TAPView({el: '#gps', model: new app.TAP({tap: {}, tapId: 13})}); }
-   */
     }
   });
 
