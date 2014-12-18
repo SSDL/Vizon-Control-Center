@@ -17,7 +17,7 @@ CAP.add({
 	missionId: { type: Types.Relationship, ref: 'Mission', index: true, many: true, initial: true , required: true},
 	name: { type: String, initial : true },
 	length: { type: Number, required: true, initial: true },
-	package: {type: Types.TextArray, initial: false}
+	package: {type: Types.Grid, initial: false, length: 6}
 });
 
 CAP.schema.pre('save', function(next) {

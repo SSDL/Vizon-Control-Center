@@ -22,16 +22,12 @@ mixin mission-viewer-content()
 		div.row
 			div#missionindicator
 			br
+			div#checklist
 		div.row.fontsize
-			div.col-xs-6
-				div#status
-				div#status
-				div#beacon
-				div#cmdecho
-				div#bustelem
-				div#lmrsttelem
-				div#config
-				div#gps
+			div#tapviews.col-xs-6
+				- for (var key in data.tap_descs) {
+				div(id=key)
+				- }
 			div.col-xs-6
 				div#caps
 	
@@ -51,6 +47,17 @@ mixin mission-viewer-content()
 					div.pull-left
 						h1 Mission <%= mission.missionId %> - <%= mission.name %>
 					div.clearfix
+	
+		script(type='text/template', id='tmpl-check')
+			fieldset
+				div.control-group
+					input#toggleall(type='checkbox')
+					label(for='toggleall') Show All
+					ul#checklistitems
+						<% _.each(tap_descs, function(tap_desc) {%>
+						input.toggle(type='checkbox')
+						label <%= tap_desc.attributes.ID %>
+						<% }); %>
 	
 		script(type='text/template', id='tmpl-raw')
 			<% if(!tap_desc) return; %>
@@ -83,7 +90,7 @@ mixin mission-viewer-content()
 				div.control-group
 					select.form-control#cap_selector(name='cap_selector')
 						<% var offsetCounter = 0; %>
-						<% _.each(cap_descs, function(cap_desc) { %>
+						<% _.each(cap_descs, function(cap_desc) {%>
 						<% var capnum = cap_desc.attributes.ID.split('_')[1]; %>
 						<% if(capnum == '1') { %>
 						<% offsetCounter++; %>

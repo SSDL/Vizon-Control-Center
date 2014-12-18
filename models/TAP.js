@@ -18,7 +18,7 @@ TAP.add({
 	missionId: { type: Types.Relationship, ref: 'Mission', index: true, many: true, initial: true , required: true},
 	name: { type: String, required: true, initial: true },
 	length: { type: Number, required: true, initial: true },
-	package: {type: Types.TextArray, required: false, initial: false}
+	package: {type: Types.Grid, required: false, initial: false, length: 4}
 });
 
 TAP.schema.pre('save', function(next) {
