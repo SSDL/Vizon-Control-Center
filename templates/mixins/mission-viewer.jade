@@ -116,7 +116,7 @@ mixin mission-viewer-content()
 				// legend <%= name %>
 				<% var elems = package.slice(0); _.each(header, function(h_elem) { if(h_elem.split(',')[0] == 'Execution Time') elems.splice(0,0,h_elem) }); _.each(elems, function(elem) { %>
 				div.control-group
-					<% var f = elem.split(',')[0]; var o = elem.split(',')[4]; var h = elem.split(',')[5]; %>
+					<% var f = elem.split(',')[0]; var o = elem.split(',')[2]; var h = elem.split(',')[4]; %>
 					label.control-label <%= f %>
 					<% if( o && o.trim() == 'TAPS') { %>
 					select.form-control(name!='<%= f %>')
