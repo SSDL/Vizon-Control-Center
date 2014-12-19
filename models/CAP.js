@@ -47,7 +47,7 @@ CAP.schema.pre('save', function(next) {
 			next(err);
 		}
 		if ( fields[2] ) {
-			var optionregex = /^\[\s*\S+\s*:\s*\d+\s*(;\s*\S+\s*:\s*\d+\s*)*\]$/;
+			var optionregex = /^\[\s*[A-Za-z0-9_]+\s*:\s*\d+\s*(;\s*[A-Za-z0-9_]+\s*:\s*\d+\s*)*\]$/;
 			switch ( true ) 
 			{
 				case fields[2] == 'INTERVAL':
