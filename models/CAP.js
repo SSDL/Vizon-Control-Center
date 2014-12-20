@@ -6,7 +6,7 @@ var keystone = require('keystone'),
  * ==========
  */
 
-var gridlength = 6;
+var gridlength = 5;
 
 var CAP = new keystone.List('CAP', {
 	track: true,

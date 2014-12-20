@@ -43,12 +43,12 @@ TAP.schema.pre('save', function(next) {
 			var err = new Error('No commas are allowed in grid entries.');
 			next(err);
 		}
-		if ( !/^\d*$/.test(fields[1]) ) { // This allows '3a' through
+		if ( !/^-?\d*$/.test(fields[1]) ) { // This allows '3a' through
 			var err = new Error('Package, Line ' + (index+1) + ', 2nd Entry: ' + ' \"' + fields[1] + '\" is not an integer');
 			next(err);
 		}
 		if ( fields[2] ) {
-			var arrayregex = /^\[\s*\d+\.?(?=\d)\d*\s*(;\s*\d+\.?(?=\d)\d*\s*)*\]$/;
+			var arrayregex = /^\[\s*-?\d+\.?(?=\d)\d*\s*(;\s*-?\d+\.?(?=\d)\d*\s*)*\]$/;
 			switch ( true ) 
 			{
 				case fields[2] == 'hex':
