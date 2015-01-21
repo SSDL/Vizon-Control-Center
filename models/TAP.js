@@ -48,6 +48,8 @@ TAP.schema.pre('save', function(next) {
 			next(err);
 		}
 		if ( fields[2] ) {
+			// Regex for comma separated string of decimal numbers encased in brackets
+			// E.g. [ 1, 2.345 ,5.43, 0.0] Will pass
 			var arrayregex = /^\[\s*-?\d+\.?(?=\d)\d*\s*(;\s*-?\d+\.?(?=\d)\d*\s*)*\]$/;
 			switch ( true ) 
 			{
