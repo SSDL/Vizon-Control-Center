@@ -7,6 +7,8 @@ var keystone = require('keystone'),
  * ==========
  */
 
+var gridlength = 3;
+
 var TAP = new keystone.List('TAP', {
 	track: true,
 	map: { name: 'ID' },
@@ -18,7 +20,7 @@ TAP.add({
 	missionId: { type: Types.Relationship, ref: 'Mission', index: true, many: true, initial: true , required: true},
 	name: { type: String, required: true, initial: true },
 	length: { type: Number, required: true, initial: true },
-	package: {type: Types.TextArray, required: false, initial: false}
+	package: {type: Types.Grid, required: false, initial: false, length: gridlength}
 });
 
 TAP.schema.pre('save', function(next) {
@@ -32,6 +34,36 @@ TAP.schema.pre('save', function(next) {
 		}
 		next();
 	});
+});
+
+TAP.schema.pre('save', function(next) {
+	this.package.forEach( function( entry, index ) {
+		var fields = entry.split(',');
+		if ( fields.length > gridlength ) {
+			var err = new Error('No commas are allowed in grid entries.');
+			next(err);
+		}
+		if ( !/^-?\d*$/.test(fields[1]) ) { // This allows '3a' through
+			var err = new Error('Package, Line ' + (index+1) + ', 2nd Entry: ' + ' \"' + fields[1] + '\" is not an integer');
+			next(err);
+		}
+		if ( fields[2] ) {
+			var arrayregex = /^\[\s*-?\d+\.?(?=\d)\d*\s*(;\s*-?\d+\.?(?=\d)\d*\s*)*\]$/;
+			switch ( true ) 
+			{
+				case fields[2] == 'hex':
+				case fields[2] == 'string':
+				case fields[2] == 'snap':
+				case arrayregex.test(fields[2]):
+					break;
+				default:
+					var err = new Error('Package, Line ' + (index+1) + ', 3rd Entry: ' + ' \"' + fields[2] + '\" is not a supported conversion type.  Please see documentation for conversion type definitions.');
+					next(err);
+					break;
+			}
+		}
+	});
+	next();
 });
 
 TAP.schema.post('save', function(tap) {

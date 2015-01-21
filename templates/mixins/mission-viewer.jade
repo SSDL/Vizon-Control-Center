@@ -22,16 +22,12 @@ mixin mission-viewer-content()
 		div.row
 			div#missionindicator
 			br
+			div#checklist
 		div.row.fontsize
-			div.col-xs-6
-				div#status
-				div#status
-				div#beacon
-				div#cmdecho
-				div#bustelem
-				div#lmrsttelem
-				div#config
-				div#gps
+			div#tapviews.col-xs-6
+				- for (var key in data.tap_descs) {
+				div(id=key)
+				- }
 			div.col-xs-6
 				div#caps
 	
@@ -51,6 +47,17 @@ mixin mission-viewer-content()
 					div.pull-left
 						h1 Mission <%= mission.missionId %> - <%= mission.name %>
 					div.clearfix
+	
+		script(type='text/template', id='tmpl-check')
+			fieldset
+				div.control-group
+					input#toggleall(type='checkbox')
+					label(for='toggleall') Show All
+					ul#checklistitems
+						<% _.each(tap_descs, function(tap_desc) {%>
+						input.toggle(type='checkbox')
+						label <%= tap_desc.ID %>
+						<% }); %>
 	
 		script(type='text/template', id='tmpl-raw')
 			<% if(!tap_desc) return; %>
@@ -83,7 +90,7 @@ mixin mission-viewer-content()
 				div.control-group
 					select.form-control#cap_selector(name='cap_selector')
 						<% var offsetCounter = 0; %>
-						<% _.each(cap_descs, function(cap_desc) { %>
+						<% _.each(cap_descs, function(cap_desc) {%>
 						<% var capnum = cap_desc.attributes.ID.split('_')[1]; %>
 						<% if(capnum == '1') { %>
 						<% offsetCounter++; %>
@@ -116,7 +123,7 @@ mixin mission-viewer-content()
 				// legend <%= name %>
 				<% var elems = package.slice(0); _.each(header, function(h_elem) { if(h_elem.split(',')[0] == 'Execution Time') elems.splice(0,0,h_elem) }); _.each(elems, function(elem) { %>
 				div.control-group
-					<% var f = elem.split(',')[0]; var o = elem.split(',')[4]; var h = elem.split(',')[5]; %>
+					<% var f = elem.split(',')[0]; var o = elem.split(',')[2]; var h = elem.split(',')[4]; %>
 					label.control-label <%= f %>
 					<% if( o && o.trim() == 'TAPS') { %>
 					select.form-control(name!='<%= f %>')

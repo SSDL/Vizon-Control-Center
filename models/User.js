@@ -18,6 +18,8 @@ User.add({
 	resetPasswordKey: {type: String, hidden: true},
 }, 'Permissions', {
 	isAdmin: { type: Boolean, label: 'Can access Keystone', index: true },
+	isSuper: { type: Boolean, label: 'SuperUser', index: true, noedit: true },
+	
 });
 
 // Provide access to Keystone

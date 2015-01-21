@@ -89,7 +89,7 @@ module.exports = function(app){
         // log the access attempt (defaults to fail, can update to pass later)
       },
       function(err, results) {
-	if (err || !(results.gs && results.gs.key) ) {
+				if (err || !(results.gs && results.gs.key) ) {
           utils.logText('GS ' + ' Lookup', 'DENY'.yellow);
           socket.emit('auth-fail');
           socket.disconnect();
@@ -100,13 +100,13 @@ module.exports = function(app){
           .createHmac(challenge.alg, results.gs.key)
           .update(challenge.data)
           .digest(challenge.enc);
-	socket.emit('auth-challenge', challenge, function(response) {
-	  if(response != answer) {
-            socket.emit('auth-fail');
-            socket.disconnect();
-            utils.logText('GS ' + ' Challenge', 'DENY'.yellow);
-            return;
-          }
+				socket.emit('auth-challenge', challenge, function(response) {
+					if(response != answer) {
+						socket.emit('auth-fail');
+						socket.disconnect();
+						utils.logText('GS ' + ' Challenge', 'DENY'.yellow);
+						return;
+					}
           socket.gs = results.gs;
           // socket.accesslog = results.log;
           handleGSSocketConnection(socket);
@@ -119,10 +119,11 @@ module.exports = function(app){
     });
   }
   
+  
   function handleGSSocketConnection(socket) {
     socket.on('disconnect', function() {
       utils.logText('GS ', // socket.accesslog.gsid,
- 	'DISC'.yellow);
+ 				'DISC'.yellow);
     });
     
     socket.on('descriptor-request', function(desc_typeid, callback) {
@@ -134,18 +135,16 @@ module.exports = function(app){
       }
       utils.logText('Descriptor request for ' + desc_typeid);
       db.funcs.loadPacketDescriptors(desc_typeid, function(err,descriptors){
-	for(var i in descriptors) {
-	  descriptors[i] = descriptors[i].toJSON(); // needed to make the object
+				for(var i in descriptors) {
+					descriptors[i] = descriptors[i].toJSON(); // needed to make the object
 												// purely JSON, no mongoose
 												// stuff
-          
-	  for (var m in descriptors[i].missionId) {
-          	console.log(descriptors[i]);
-		data.push({
-            	l: descriptors[i].length,
-		h: descriptors[i].missionId[m][descriptors[i].ID.split('_')[0] + "Header"],
-            	p: descriptors[i].package, 
-          	});
+					for (var m in descriptors[i].missionId) {
+						data.push({
+							l: descriptors[i].length,
+							h: descriptors[i].missionId[m][descriptors[i].ID.split('_')[0] + "Header"],
+							p: descriptors[i].package
+						});
           }
         }
         callback(data);
@@ -171,7 +170,6 @@ module.exports = function(app){
 						utils.log(err);
 					} else {
 						createConfirmation(tap, newtap.h.t + ' logged'.green, socket);
-					// Where does this line go?
 						app.listener.of('/web').in(tap.h.mid).emit('new-tap', newtap._t);
 						findCAPs(newtap, socket);
 					}
@@ -184,8 +182,6 @@ module.exports = function(app){
   
   
   function findCAPs(TAPrecord, socket) {
-    // db.models.CAPlog.findOne( { '_t': new RegExp('^'+ TAPrecord.h.mid +'-',
-	// "i") }).exec( function(err, caps) {
     db.models.CAPlog.find({ 'h.mid' : TAPrecord.h.mid, 'td': null }).exec(function(err, caps){
       for(var i in caps) {
         caps[i].td = new Date();
