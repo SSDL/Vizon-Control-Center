@@ -6,6 +6,8 @@ var keystone = require('keystone'),
  * ==========
  */
 
+var gridlength = 5;
+
 var CAP = new keystone.List('CAP', {
 	track: true,
 	map: { name: 'ID' },
@@ -17,7 +19,7 @@ CAP.add({
 	missionId: { type: Types.Relationship, ref: 'Mission', index: true, many: true, initial: true , required: true},
 	name: { type: String, initial : true },
 	length: { type: Number, required: true, initial: true },
-	package: {type: Types.Grid, initial: false, length: 6}
+	package: {type: Types.Grid, initial: false, length: gridlength}
 });
 
 CAP.schema.pre('save', function(next) {
@@ -31,6 +33,47 @@ CAP.schema.pre('save', function(next) {
 		}
 		next();
 	});
+});
+
+CAP.schema.pre('save', function(next) {
+	this.package.forEach( function( entry, index ) {
+		var fields = entry.split(',');
+		if ( fields.length > gridlength ) {
+			var err = new Error('No commas are allowed in grid entries.');
+			next(err);
+		}
+		if ( !/^\d*$/.test(fields[1]) ) { // This allows '3a' through
+			var err = new Error('Package, Line ' + (index+1) + ', 2nd Entry: ' + ' \"' + fields[1] + '\" is not an integer');
+			next(err);
+		}
+		if ( fields[2] ) {
+			var optionregex = /^\[\s*[A-Za-z0-9_]+\s*:\s*\d+\s*(;\s*[A-Za-z0-9_]+\s*:\s*\d+\s*)*\]$/;
+			switch ( true ) 
+			{
+				case fields[2] == 'INTERVAL':
+				case fields[2] == 'CLOCK':
+				case fields[2] == 'TAPS':
+				case optionregex.test(fields[2]):
+					break;
+				default:
+					var err = new Error('Package, Line ' + (index+1) + ', 3rd Entry: ' + ' \"' + fields[2] + '\" is not a supported data type.  Please see documentation for data type definitions.');
+					next(err);
+					break;
+			}
+		}
+		if ( fields[3] ) {
+			switch ( true ) 
+			{
+				case fields[3] == 'snap':
+					break;
+				default:
+					var err = new Error('Package, Line ' + (index+1) + ', 4th Entry: ' + ' \"' + fields[3] + '\" is not a supported conversion type.  Please see documentation for conversion type definitions.');
+					next(err);
+					break;
+			}
+		}
+	});
+	next();
 });
 
 CAP.schema.post('save', function(tap) {
