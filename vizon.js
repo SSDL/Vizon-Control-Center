@@ -109,12 +109,8 @@ keystone.set('nav', {
 
 // Start Keystone to connect to your database and initialise the web server
 
-
-//require('./database')(keystone.express);
-
 keystone.io = require('socket.io');
 require('./database')(keystone);
-
 
 keystone.start({
     onHttpServerCreated: function() {
