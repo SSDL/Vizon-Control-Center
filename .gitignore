@@ -35,3 +35,5 @@ nohup.out
 
 # file is generated at runtime
 *bundle.js
+
+node_modules/
