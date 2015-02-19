@@ -1,12 +1,13 @@
+
 /**
  * Module dependencies.
  */
 
-var CookieJar = require('cookiejar').CookieJar
-  , CookieAccess = require('cookiejar').CookieAccessInfo
-  , parse = require('url').parse
-  , request = require('./index')
-  , methods = require('methods');
+var CookieJar = require('cookiejar').CookieJar;
+var CookieAccess = require('cookiejar').CookieAccessInfo;
+var parse = require('url').parse;
+var request = require('./index');
+var methods = require('methods');
 
 /**
  * Expose `Agent`.
@@ -20,8 +21,9 @@ module.exports = Agent;
  * @api public
  */
 
-function Agent() {
-  if (!(this instanceof Agent)) return new Agent;
+function Agent(options) {
+  if (!(this instanceof Agent)) return new Agent(options);
+  if (options) this._ca = options.ca;
   this.jar = new CookieJar;
 }
 
@@ -47,7 +49,7 @@ Agent.prototype.saveCookies = function(res){
 
 Agent.prototype.attachCookies = function(req){
   var url = parse(req.url);
-  var access = CookieAccess(url.host, url.pathname, 'https:' == url.protocol);
+  var access = CookieAccess(url.hostname, url.pathname, 'https:' == url.protocol);
   var cookies = this.jar.getCookies(access).toValueString();
   req.cookies = cookies;
 };
@@ -60,6 +62,7 @@ methods.forEach(function(method){
   method = method.toUpperCase();
   Agent.prototype[name] = function(url, fn){
     var req = request(method, url);
+    req.ca(this._ca);
 
     req.on('response', this.saveCookies.bind(this));
     req.on('redirect', this.saveCookies.bind(this));

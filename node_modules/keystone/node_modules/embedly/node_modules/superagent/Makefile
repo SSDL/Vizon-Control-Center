@@ -5,10 +5,10 @@ REPORTER = dot
 all: superagent.js
 
 test:
-	@NODE_ENV=test ./node_modules/.bin/mocha \
+	@NODE_ENV=test NODE_TLS_REJECT_UNAUTHORIZED=0 ./node_modules/.bin/mocha \
 		--require should \
 		--reporter $(REPORTER) \
-		--timeout 2000 \
+		--timeout 5000 \
 		--growl \
 		$(TESTS)
 
@@ -19,13 +19,12 @@ lib-cov:
 	jscoverage lib lib-cov
 
 superagent.js: components
-	component build --standalone superagent
+	@component build \
+	  --standalone superagent \
+	  --out . --name superagent
 
 components:
 	component install
-
-superagent.min.js: superagent.js
-	uglifyjs --no-mangle $< > $@
 
 test-server:
 	@node test/server

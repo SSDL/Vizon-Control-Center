@@ -19,7 +19,8 @@ var TAP = new keystone.List('TAP', {
 
 // Add the appropriate data buckets
 TAP.add({
-	ID: { type: String, required: true, match: [/TAP_\d+$/, 'ID Format must be TAP_#'] },
+	ID: { type: String, required: true, initial: false, match: [/TAP_\d+$/, 'ID Format must be TAP_#'] },
+	//ID: { type: String, required: true, match: [/TAP_\d+$/, 'ID Format must be TAP_#'] },
 	missionId: { type: Types.Relationship, ref: 'Mission', index: true, many: true, initial: true , required: true},
 	name: { type: String, required: true, initial: true },
 	length: { type: Number, required: true, initial: true },

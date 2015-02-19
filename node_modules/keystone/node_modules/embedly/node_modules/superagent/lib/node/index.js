@@ -1,27 +1,27 @@
-/*!
- * superagent
- * Copyright (c) 2011 TJ Holowaychuk <tj@vision-media.ca>
- * MIT Licensed
- */
 
 /**
  * Module dependencies.
  */
 
-var Stream = require('stream').Stream
-  , formidable = require('formidable')
-  , Response = require('./response')
-  , parse = require('url').parse
-  , format = require('url').format
-  , methods = require('methods')
-  , utils = require('./utils')
-  , Part = require('./part')
-  , mime = require('mime')
-  , https = require('https')
-  , http = require('http')
-  , fs = require('fs')
-  , qs = require('qs')
-  , util = require('util');
+var debug = require('debug')('superagent');
+var formidable = require('formidable');
+var FormData = require('form-data');
+var Response = require('./response');
+var parse = require('url').parse;
+var format = require('url').format;
+var methods = require('methods');
+var Stream = require('stream');
+var utils = require('./utils');
+var extend = require('extend');
+var Part = require('./part');
+var mime = require('mime');
+var https = require('https');
+var http = require('http');
+var fs = require('fs');
+var qs = require('qs');
+var zlib = require('zlib');
+var util = require('util');
+var pkg = require('../../package.json');
 
 /**
  * Expose the request function.
@@ -34,7 +34,6 @@ exports = module.exports = request;
  */
 
 exports.agent = require('./agent');
-
 
 /**
  * Expose `Part`.
@@ -117,16 +116,19 @@ exports.parse = require('./parsers');
  */
 
 function Request(method, url) {
+  Stream.call(this);
   var self = this;
   if ('string' != typeof url) url = format(url);
+  this._agent = false;
+  this._formData = null;
   this.method = method;
   this.url = url;
   this.header = {};
   this.writable = true;
   this._redirects = 0;
   this.redirects(5);
-  this.attachments = [];
   this.cookies = '';
+  this.qs = {};
   this._redirectList = [];
   this.on('end', this.clearTimeout.bind(this));
   this.on('response', function(res){
@@ -135,29 +137,67 @@ function Request(method, url) {
 }
 
 /**
- * Inherit from `Stream.prototype`.
+ * Inherit from `Stream`.
  */
 
-Request.prototype.__proto__ = Stream.prototype;
+util.inherits(Request, Stream);
 
 /**
- * Queue the given `file` as an attachment
+ * Write the field `name` and `val` for "multipart/form-data"
+ * request bodies.
+ *
+ * ``` js
+ * request.post('http://localhost/upload')
+ *   .field('foo', 'bar')
+ *   .end(callback);
+ * ```
+ *
+ * @param {String} name
+ * @param {String|Buffer|fs.ReadStream} val
+ * @return {Request} for chaining
+ * @api public
+ */
+
+Request.prototype.field = function(name, val){
+  debug('field', name, val);
+  if (!this._formData) this._formData = new FormData();
+  this._formData.append(name, val);
+  return this;
+};
+
+/**
+ * Queue the given `file` as an attachment to the specified `field`,
  * with optional `filename`.
  *
+ * ``` js
+ * request.post('http://localhost/upload')
+ *   .attach(new Buffer('<b>Hello world</b>'), 'hello.html')
+ *   .end(callback);
+ * ```
+ *
+ * A filename may also be used:
+ *
+ * ``` js
+ * request.post('http://localhost/upload')
+ *   .attach('files', 'image.jpg')
+ *   .end(callback);
+ * ```
+ *
  * @param {String} field
- * @param {String} file
+ * @param {String|fs.ReadStream|Buffer} file
  * @param {String} filename
  * @return {Request} for chaining
  * @api public
  */
 
 Request.prototype.attach = function(field, file, filename){
-  this.attachments.push({
-    field: field,
-    path: file,
-    part: new Part(this),
-    filename: filename || file
-  });
+  if (!this._formData) this._formData = new FormData();
+  if ('string' == typeof file) {
+    filename = file;
+    debug('creating `fs.ReadStream` instance for file: %s', filename);
+    file = fs.createReadStream(filename);
+  }
+  this._formData.append(field, file, filename);
   return this;
 };
 
@@ -170,6 +210,7 @@ Request.prototype.attach = function(field, file, filename){
  */
 
 Request.prototype.redirects = function(n){
+  debug('max redirects %s', n);
   this._maxRedirects = n;
   return this;
 };
@@ -179,10 +220,27 @@ Request.prototype.redirects = function(n){
  *
  * @return {Part}
  * @api public
+ * @deprecated pass a readable stream in to `Request#attach()` instead
  */
 
-Request.prototype.part = function(){
+Request.prototype.part = util.deprecate(function(){
   return new Part(this);
+}, '`Request#part()` is deprecated. ' +
+   'Pass a readable stream in to `Request#attach()` instead.');
+
+/**
+ * Gets/sets the `Agent` to use for this HTTP request. The default (if this
+ * function is not called) is to opt out of connection pooling (`agent: false`).
+ *
+ * @param {http.Agent} agent
+ * @return {http.Agent}
+ * @api public
+ */
+
+Request.prototype.agent = function(agent){
+  if (!arguments.length) return this._agent;
+  this._agent = agent;
+  return this;
 };
 
 /**
@@ -212,7 +270,29 @@ Request.prototype.set = function(field, val){
     }
     return this;
   }
+
+  debug('set %s "%s"', field, val);
   this.request().setHeader(field, val);
+  return this;
+};
+
+/**
+ * Remove header `field`.
+ *
+ * Example:
+ *
+ *      req.get('/')
+ *        .unset('User-Agent')
+ *        .end(callback);
+ *
+ * @param {String} field
+ * @return {Request} for chaining
+ * @api public
+ */
+
+Request.prototype.unset = function(field){
+  debug('unset %s', field);
+  this.request().removeHeader(field);
   return this;
 };
 
@@ -260,6 +340,32 @@ Request.prototype.type = function(type){
 };
 
 /**
+ * Set _Accept_ response header passed through `mime.lookup()`.
+ *
+ * Examples:
+ *
+ *      superagent.types.json = 'application/json';
+ *
+ *      request.get('/agent')
+ *        .accept('json')
+ *        .end(callback);
+ *
+ *      request.get('/agent')
+ *        .accept('application/json')
+ *        .end(callback);
+ *
+ * @param {String} accept
+ * @return {Request} for chaining
+ * @api public
+ */
+
+Request.prototype.accept = function(type){
+  return this.set('Accept', ~type.indexOf('/')
+    ? type
+    : mime.lookup(type));
+};
+
+/**
  * Add query-string `val`.
  *
  * Examples:
@@ -274,10 +380,18 @@ Request.prototype.type = function(type){
  */
 
 Request.prototype.query = function(val){
-  var req = this.request();
-  if ('string' != typeof val) val = qs.stringify(val);
-  if (!val.length) return this;
-  req.path += (~req.path.indexOf('?') ? '&' : '?') + val;
+  var obj = {};
+
+  if ('string' == typeof val) {
+    var elements = val.split('&');
+    for (var i = 0; i < elements.length; i++) {
+      var parts = elements[i].split('=');
+      obj[parts[0]] = parts[1];
+    }
+    return this.query(obj);
+  }
+
+  extend(this.qs, val);
   return this;
 };
 
@@ -380,9 +494,14 @@ Request.prototype.write = function(data, encoding){
  */
 
 Request.prototype.pipe = function(stream, options){
+  this.piped = true; // HACK...
   this.buffer(false);
   this.end().req.on('response', function(res){
-    res.pipe(stream, options);
+    if (/^(deflate|gzip)$/.test(res.headers['content-encoding'])) {
+      res.pipe(zlib.createUnzip()).pipe(stream, options);
+    } else {
+      res.pipe(stream, options);
+    }
   });
   return stream;
 };
@@ -423,9 +542,24 @@ Request.prototype.timeout = function(ms){
  */
 
 Request.prototype.clearTimeout = function(){
+  debug('clear timeout %s %s', this.method, this.url);
   this._timeout = 0;
   clearTimeout(this._timer);
   return this;
+};
+
+/**
+ * Abort and clear timeout.
+ *
+ * @api public
+ */
+
+Request.prototype.abort = function(){
+  debug('abort %s %s', this.method, this.url);
+  this._aborted = true;
+  this.clearTimeout();
+  this.req.abort();
+  this.emit('abort');
 };
 
 /**
@@ -451,6 +585,7 @@ Request.prototype.parse = function(fn){
 
 Request.prototype.redirect = function(res){
   var url = res.headers.location;
+  debug('redirect %s -> %s', this.url, url);
 
   // location
   if (!~url.indexOf('://')) {
@@ -459,6 +594,10 @@ Request.prototype.redirect = function(res){
     }
     url = this.protocol + url;
   }
+
+  // ensure the response is being consumed
+  // this is required for Node v0.10+
+  res.resume();
 
   // strip Content-* related fields
   // in case of POST etc
@@ -474,6 +613,7 @@ Request.prototype.redirect = function(res){
   this._data = null;
   this.url = url;
   this._redirectList.push(url);
+  this.clearTimeout();
   this.emit('redirect', res);
   this.set(header);
   this.end(this._callback);
@@ -483,6 +623,12 @@ Request.prototype.redirect = function(res){
 /**
  * Set Authorization field value with `user` and `pass`.
  *
+ * Examples:
+ *
+ *   .auth('tobi', 'learnboost')
+ *   .auth('tobi:learnboost')
+ *   .auth('tobi')
+ *
  * @param {String} user
  * @param {String} pass
  * @return {Request} for chaining
@@ -490,23 +636,31 @@ Request.prototype.redirect = function(res){
  */
 
 Request.prototype.auth = function(user, pass){
-  var str = new Buffer(user + ':' + pass).toString('base64');
+  if (1 === arguments.length) pass = '';
+  if (!~user.indexOf(':')) user = user + ':';
+  var str = new Buffer(user + pass).toString('base64');
   return this.set('Authorization', 'Basic ' + str);
 };
 
 /**
- * Write the field `name` and `val`.
+ * Set the certificate authority option for https request.
  *
- * @param {String} name
- * @param {String} val
+ * @param {Buffer | Array} cert
  * @return {Request} for chaining
  * @api public
  */
 
-Request.prototype.field = function(name, val){
-  this.part()
-    .name(name)
-    .write(val);
+Request.prototype.ca = function(cert){
+  this._ca = cert;
+  return this;
+};
+
+/**
+ * Allow for extension
+ */
+
+Request.prototype.use = function(fn) {
+  fn(this);
   return this;
 };
 
@@ -519,10 +673,11 @@ Request.prototype.field = function(name, val){
 
 Request.prototype.request = function(){
   if (this.req) return this.req;
-  var self = this
-    , options = {}
-    , data = this._data
-    , url = this.url;
+
+  var self = this;
+  var options = {};
+  var data = this._data;
+  var url = this.url;
 
   // default to http://
   if (0 != url.indexOf('http')) url = 'http://' + url;
@@ -533,13 +688,15 @@ Request.prototype.request = function(){
   options.port = url.port;
   options.path = url.pathname;
   options.host = url.hostname;
+  options.ca = this._ca;
+  options.agent = this._agent;
 
   // initiate request
   var mod = exports.protocols[url.protocol];
 
   // request
   var req = this.req = mod.request(options);
-  req.setHeader('Accept-Encoding', 'gzip, deflate');
+  if ('HEAD' != options.method) req.setHeader('Accept-Encoding', 'gzip, deflate');
   this.protocol = url.protocol;
   this.host = url.host;
 
@@ -564,7 +721,10 @@ Request.prototype.request = function(){
   this.query(url.query);
 
   // add cookies
-  req.setHeader('Cookie', this.cookies);
+  if (this.cookies) req.setHeader('Cookie', this.cookies);
+
+  // set default UA
+  req.setHeader('User-Agent', 'node-superagent/' + pkg.version);
 
   return req;
 };
@@ -581,6 +741,8 @@ Request.prototype.request = function(){
 Request.prototype.callback = function(err, res){
   var fn = this._callback;
   this.clearTimeout();
+  if (this.called) return console.warn('double callback!');
+  this.called = true;
   if (2 == fn.length) return fn(err, res);
   if (err) return this.emit('error', err);
   fn(res);
@@ -596,23 +758,34 @@ Request.prototype.callback = function(err, res){
  */
 
 Request.prototype.end = function(fn){
-  var self = this
-    , data = this._data
-    , req = this.request()
-    , buffer = this._buffer
-    , method = this.method
-    , timeout = this._timeout;
+  var self = this;
+  var data = this._data;
+  var req = this.request();
+  var buffer = this._buffer;
+  var method = this.method;
+  var timeout = this._timeout;
+  debug('%s %s', this.method, this.url);
 
   // store callback
   this._callback = fn || noop;
 
+  // querystring
+  try {
+    var querystring = qs.stringify(this.qs);
+    req.path += querystring.length
+      ? (~req.path.indexOf('?') ? '&' : '?') + querystring
+      : '';
+  } catch (e) {
+    return this.callback(e);
+  }
+
   // timeout
   if (timeout && !this._timer) {
+    debug('timeout %sms %s %s', timeout, this.method, this.url);
     this._timer = setTimeout(function(){
       var err = new Error('timeout of ' + timeout + 'ms exceeded');
       err.timeout = timeout;
-      self._aborted = true;
-      req.abort();
+      self.abort();
       self.callback(err);
     }, timeout);
   }
@@ -621,7 +794,10 @@ Request.prototype.end = function(fn){
   if ('HEAD' != method && !req._headerSent) {
     // serialize stuff
     if ('string' != typeof data) {
-      var serialize = exports.serialize[req.getHeader('Content-Type')];
+      var contentType = req.getHeader('Content-Type')
+      // Parse out just the content type from the header (ignore the charset)
+      if (contentType) contentType = contentType.split(';')[0]
+      var serialize = exports.serialize[contentType];
       if (serialize) data = serialize(data);
     }
 
@@ -633,13 +809,34 @@ Request.prototype.end = function(fn){
 
   // response
   req.on('response', function(res){
-    var max = self._maxRedirects
-      , mime = utils.type(res.headers['content-type'] || '')
-      , type = mime.split('/')
-      , subtype = type[1]
-      , type = type[0]
-      , multipart = 'multipart' == type
-      , redirect = isRedirect(res.statusCode);
+    debug('%s %s -> %s', self.method, self.url, res.statusCode);
+    var max = self._maxRedirects;
+    var mime = utils.type(res.headers['content-type'] || '');
+    var len = res.headers['content-length'];
+    var type = mime.split('/');
+    var subtype = type[1];
+    var type = type[0];
+    var multipart = 'multipart' == type;
+    var redirect = isRedirect(res.statusCode);
+    var parser = self._parser;
+
+    self.res = res;
+
+    if ('HEAD' == self.method) {
+      var response = new Response(self);
+      self.response = response;
+      response.redirects = self._redirectList;
+      self.emit('response', response);
+      self.emit('end');
+      return;
+    }
+
+    if (self.piped) {
+      res.on('end', function(){
+        self.emit('end');
+      });
+      return;
+    }
 
     // redirect
     if (redirect && self._redirects++ != max) {
@@ -655,16 +852,29 @@ Request.prototype.end = function(fn){
     if (multipart) buffer = false;
 
     // TODO: make all parsers take callbacks
-    if (multipart) {
+    if (!parser && multipart) {
       var form = new formidable.IncomingForm;
 
       form.parse(res, function(err, fields, files){
-        if (err) throw err;
-        // TODO: handle error
-        // TODO: emit formidable events, parse json etc
-        var response = new Response(req, res);
+        if (err) return self.callback(err);
+        var response = new Response(self);
+        self.response = response;
         response.body = fields;
         response.files = files;
+        response.redirects = self._redirectList;
+        self.emit('end');
+        self.callback(null, response);
+      });
+      return;
+    }
+
+    // check for images, one more special treatment
+    if (!parser && isImage(mime)) {
+      exports.parse.image(res, function(err, obj){
+        if (err) return self.callback(err);
+        var response = new Response(self);
+        self.response = response;
+        response.body = obj;
         response.redirects = self._redirectList;
         self.emit('end');
         self.callback(null, response);
@@ -686,116 +896,94 @@ Request.prototype.end = function(fn){
     if (buffer) parse = parse || exports.parse.text;
 
     // explicit parser
-    if (self._parser) parse = self._parser;
+    if (parser) parse = parser;
 
     // parse
     if (parse) {
-      parse(res, function(err, obj){
-        // TODO: handle error
-        res.body = obj;
-      });
+      try {
+        parse(res, function(err, obj){
+          if (err) self.callback(err);
+          res.body = obj;
+        });
+      } catch(err) {
+        self.callback(err);
+        return;
+      }
     }
 
     // unbuffered
     if (!buffer) {
+      debug('unbuffered %s %s', self.method, self.url);
       self.res = res;
-      var response = new Response(self.req, self.res);
+      var response = new Response(self);
+      self.response = response;
       response.redirects = self._redirectList;
       self.emit('response', response);
+      if (multipart) return // allow multipart to handle end event
+      res.on('end', function(){
+        debug('end %s %s', self.method, self.url);
+        self.emit('end');
+      })
       return;
     }
 
     // end event
     self.res = res;
     res.on('end', function(){
+      debug('end %s %s', self.method, self.url);
       // TODO: unless buffering emit earlier to stream
-      var response = new Response(self.req, self.res);
+      var response = new Response(self);
+      self.response = response;
       response.redirects = self._redirectList;
       self.emit('response', response);
       self.emit('end');
     });
   });
 
-  if (this.attachments.length) return this.writeAttachments();
+  this.emit('request', this);
 
-  // multi-part boundary
-  if (this._boundary) this.writeFinalBoundary();
+  // if a FormData instance got created, then we send that as the request body
+  var formData = this._formData;
+  if (formData) {
 
-  req.end(data);
+    // set headers
+    var headers = formData.getHeaders();
+    for (var i in headers) {
+      debug('setting FormData header: "%s: %s"', i, headers[i]);
+      req.setHeader(i, headers[i]);
+    }
+
+    // attempt to get "Content-Length" header
+    formData.getLength(function(err, length) {
+      // TODO: Add chunked encoding when no length (if err)
+
+      debug('got FormData Content-Length: %s', length);
+      if ('number' == typeof length) {
+        req.setHeader('Content-Length', length);
+      }
+
+      formData.pipe(req);
+    });
+  } else {
+    req.end(data);
+  }
+
   return this;
 };
 
 /**
- * Write the final boundary.
+ * To json.
  *
- * @api private
+ * @return {Object}
+ * @api public
  */
 
-Request.prototype.writeFinalBoundary = function(){
-  this.request().write('\r\n--' + this._boundary + '--');
-};
-
-/**
- * Get total bytesize of all attachments.
- *
- * @param {Function} fn
- * @api private
- */
-
-Request.prototype.attachmentSize = function(fn){
-  var files = this.attachments
-    , pending = files.length
-    , bytes = 0
-    , self = this;
-
-  files.forEach(function(file){
-    fs.stat(file.path, function(err, s){
-      if (s) bytes += s.size;
-      --pending || fn(bytes);
-    });
-  })
-};
-
-/**
- * Write the attachments in sequence.
- *
- * @api private
- */
-
-Request.prototype.writeAttachments = function(){
-  var files = this.attachments
-    , req = this.request()
-    , written = 0
-    , self = this;
-
-  this.attachmentSize(function(total){
-    function next() {
-      var file = files.shift();
-      if (!file) {
-        self.writeFinalBoundary();
-        return req.end();
-      }
-
-      file.part.attachment(file.field, file.filename);
-      var stream = fs.createReadStream(file.path);
-
-      // TODO: pipe
-      // TODO: handle errors
-      stream.on('data', function(data){
-        written += data.length;
-        file.part.write(data);
-        self.emit('progress', {
-          percent: written / total * 100 | 0,
-          written: written,
-          total: total
-        });
-      }).on('error', function(err){
-        self.emit('error', err);
-      }).on('end', next);
-    }
-
-    next();
-  })
+Request.prototype.toJSON = function(){
+  return {
+    method: this.method,
+    url: this.url,
+    data: this._data
+  };
 };
 
 /**
@@ -836,10 +1024,7 @@ function request(method, url) {
 // generate HTTP verb methods
 
 methods.forEach(function(method){
-  var name = 'delete' == method
-    ? 'del'
-    : method;
-
+  var name = 'delete' == method ? 'del' : method;
   method = method.toUpperCase();
   request[name] = function(url, fn){
     var req = request(method, url);
@@ -864,6 +1049,22 @@ function isText(mime) {
   return 'text' == type
     || 'json' == subtype
     || 'x-www-form-urlencoded' == subtype;
+}
+
+/**
+ * Check if `mime` is image
+ *
+ * @param {String} mime
+ * @return {Boolean}
+ * @api public
+ */
+
+function isImage(mime) {
+  var parts = mime.split('/');
+  var type = parts[0];
+  var subtype = parts[1];
+
+  return 'image' == type;
 }
 
 /**
