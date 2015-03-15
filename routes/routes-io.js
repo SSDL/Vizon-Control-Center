@@ -112,6 +112,7 @@ module.exports = function(app){
           handleGSSocketConnection(socket);
           utils.logText('GS ', 'AUTH'.green);
           socket.emit('auth-pass');
+          findCAPs2(socket);
           // results.log.auth = true;
           // results.log.save();
         });
@@ -183,6 +184,22 @@ module.exports = function(app){
   
   function findCAPs(TAPrecord, socket) {
     db.models.CAPlog.find({ 'h.mid' : TAPrecord.h.mid, 'td': null }).exec(function(err, caps){
+      for(var i in caps) {
+        caps[i].td = new Date();
+        caps[i].save(function(err) {
+          if(err) 
+          console.log(err);
+          });
+        var cap = caps[i].toObject();
+        cap = { h: cap.h, p: cap.p };
+        socket.emit('cap',cap);
+        logPacket(cap, 'CAP', 'to GS ');// + socket.accesslog.gsid);
+      }
+    });
+  }
+  
+  function findCAPs2(socket) {
+    db.models.CAPlog.find({ 'h.mid' : 319 'td': null }).exec(function(err, caps){
       for(var i in caps) {
         caps[i].td = new Date();
         caps[i].save(function(err) {
